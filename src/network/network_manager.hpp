@@ -43,13 +43,13 @@ namespace face2wind
 		NetworkManager();
 
 		void OnAccept(SocketPtr socket_ptr);
-		void OnConnect(SocketPtr socket_ptr);
+		void OnConnect(SocketPtr socket_ptr, bool is_success);
 		void OnRecv(SocketPtr socket_ptr);
-		void OnDisconnect(SocketPtr socket_ptr);
 		void OnSendData(SocketPtr socket_ptr, const boost::system::error_code& error);
+		void OnDisconnect(SocketPtr socket_ptr);
 
-		NetworkID GetNetworkID();
-
+		NetworkID GetNewNetworkID();
+		std::string GetKeyWithSocketPtr(SocketPtr socket_ptr);
 	private:
 		boost::asio::io_service m_io_service;
 		bool io_service_running;
@@ -58,10 +58,13 @@ namespace face2wind
 		std::vector<ConnectSession*> m_connect_session_list;
 
 		std::map<NetworkID, SocketPtr> m_network_id_socket_map;
+		std::map<std::string, NetworkID> m_key_to_network_id_map;
 		std::set<SocketPtr> m_socket_set;
 
 		std::stack<NetworkID> m_free_netid_stack;
 		NetworkID m_cur_max_netid;
+
+		std::list<INetworkHandler*> m_network_handler_list;
 	};
 
 }

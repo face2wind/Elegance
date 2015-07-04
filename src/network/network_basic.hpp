@@ -14,27 +14,28 @@ namespace face2wind
 	public:
 		/*
 		当调用异步ConnectAsyn结果返回后回调
-		@result		连接结果是否成功
-		@handle		ConnectAsyn时的输出参数handle
-		@NetworkID			连接成功时，NetworkID时所得连接的网络层id
-		@ip_addr			连接ip_addr
-		@port			连接port
+		@is_success			连接结果是否成功
+		@NetworkID			该连接的NetworkID
+		@listen_port		本地端口
+		@remote_ip_addr		远端地址，主机序
+		@remote_port		远端端口号
 		*/
-		virtual void OnConnect(bool result, int handle, NetworkID network_id, IPAddr ip_addr, Port port) = 0;
+		virtual void OnConnect(bool is_success, NetworkID network_id, Port local_port, IPAddr remote_ip_addr, Port remote_port) = 0;
 
 		/*
 		单有连接accept时则回调该函数
 		@NetworkID			该连接的NetworkID
-		@ip_addr			远端地址，主机序
-		@port			远端端口号
+		@listen_port		本地端口
+		@remote_ip_addr		远端地址，主机序
+		@remote_port		远端端口号
 		*/
-		virtual void OnAccept(Port listen_port, NetworkID network_id, IPAddr ip_addr, Port port) = 0;
+		virtual void OnAccept(NetworkID network_id, Port listen_port, IPAddr remote_ip_addr, Port remote_port) = 0;
 
 		/*
 		当收到网络消息时回调该函数
 		@NetworkID			网络消息来源的NetworkID
-		@data			网络数据
-		@length		数据长度
+		@data				网络数据
+		@length				数据长度
 		*/
 		virtual void OnRecv(NetworkID network_id, const char *data, int length) = 0;
 

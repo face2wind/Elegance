@@ -24,7 +24,7 @@ namespace face2wind
 	{
 		if (!error)
 		{
-			m_network_mgr->OnConnect(socket_ptr);
+			m_network_mgr->OnConnect(socket_ptr, true);
 
 			socket_ptr->ChangeBufferSize(MESSAGE_HEADER_LENGTH);
 			boost::asio::async_read(socket_ptr->GetSocket(),
@@ -34,6 +34,7 @@ namespace face2wind
 		else
 		{
 			std::cout<<"connect error : "<<error.message()<<std::endl;
+			m_network_mgr->OnConnect(socket_ptr, false);
 		}
 	}
 
@@ -63,6 +64,7 @@ namespace face2wind
 	{
 		if (!error)
 		{
+			m_network_mgr->OnRecv(socket_ptr);
 			socket_ptr->ChangeBufferSize(MESSAGE_HEADER_LENGTH);
 			boost::asio::async_read(socket_ptr->GetSocket(),
 				boost::asio::buffer(socket_ptr->GetBuffer(), MESSAGE_HEADER_LENGTH),

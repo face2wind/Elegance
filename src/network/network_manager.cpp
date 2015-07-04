@@ -32,6 +32,10 @@ namespace face2wind
 
 	bool NetworkManager::RegistHandler(INetworkHandler *handler)
 	{
+		if (NULL == handler)
+			return false;
+
+		m_network_handler_list.push_back(handler);
 		return true;
 	}
 
@@ -127,27 +131,108 @@ namespace face2wind
 		std::cout<<"Accept successful : local_port=["<<local_port<<"], remote["<< remote_ip_addr << "-" << remote_port << "]" << std::endl;
 
 		m_socket_set.insert(socket_ptr);
-		NetworkID next_id = this->GetNetworkID();
+		NetworkID next_id = this->GetNewNetworkID();
 		m_network_id_socket_map[next_id] = socket_ptr;
+		m_key_to_network_id_map[this->GetKeyWithSocketPtr(socket_ptr)] = next_id;
+
+		for(std::list<INetworkHandler*>::iterator it = m_network_handler_list.begin(); it != m_network_handler_list.end(); ++ it)
+		{
+			(*it)->OnAccept(next_id, local_port, remote_ip_addr, remote_port);
+		}
 	}
 
-	void NetworkManager::OnConnect(SocketPtr socket_ptr)
+	void NetworkManager::OnConnect(SocketPtr socket_ptr, bool is_success)
 	{
 		if (m_socket_set.find(socket_ptr) != m_socket_set.end()) // aleady has one
 		{
 			return;
 		}
+
+// 		Port local_port = 0;
+// 		Port remote_port = 0;
+// 		IPAddr remote_ip_addr("");
+// 		NetworkID network_id = 0;
+// 		if (is_success)
+// 		{
+// 			local_port = socket_ptr->GetSocket().local_endpoint().port();
+// 			remote_ip_addr = socket_ptr->GetSocket().remote_endpoint().address().to_v4().to_string();
+// 			remote_port = socket_ptr->GetSocket().remote_endpoint().port();
+// 			std::cout<<"Connect successful : local_port=["<<local_port<<"], remote["<< remote_ip_addr << "-" << remote_port << "]" << std::endl;
+// 
+// 			m_socket_set.insert(socket_ptr);
+// 			network_id = this->GetNewNetworkID();
+// 			m_network_id_socket_map[network_id] = socket_ptr;
+// 			m_key_to_network_id_map[this->GetKeyWithSocketPtr(socket_ptr)] = network_id;
+// 		}
 		Port local_port = socket_ptr->GetSocket().local_endpoint().port();
 		IPAddr remote_ip_addr = socket_ptr->GetSocket().remote_endpoint().address().to_v4().to_string();
 		Port remote_port = socket_ptr->GetSocket().remote_endpoint().port();
-		std::cout<<"Connect successful : local_port=["<<local_port<<"], remote["<< remote_ip_addr << "-" << remote_port << "]" << std::endl;
-
+		std::cout<<"Accept successful : local_port=["<<local_port<<"], remote["<< remote_ip_addr << "-" << remote_port << "]" << std::endl;
+		
 		m_socket_set.insert(socket_ptr);
-		NetworkID next_id = this->GetNetworkID();
-		m_network_id_socket_map[next_id] = socket_ptr;
+		NetworkID network_id = this->GetNewNetworkID();
+		m_network_id_socket_map[network_id] = socket_ptr;
+		m_key_to_network_id_map[this->GetKeyWithSocketPtr(socket_ptr)] = network_id;
+
+		for(std::list<INetworkHandler*>::iterator it = m_network_handler_list.begin(); it != m_network_handler_list.end(); ++ it)
+		{
+			(*it)->OnConnect(is_success, network_id, local_port, remote_ip_addr, remote_port);
+		}
 	}
 
-	NetworkID NetworkManager::GetNetworkID()
+	void NetworkManager::OnRecv(SocketPtr socket_ptr)
+	{
+		char *buff = socket_ptr->GetBuffer();
+		int buff_size = socket_ptr->GetBufferSize();
+		if (NULL == buff || 0 >= buff_size)
+			return;
+
+		std::string key = this->GetKeyWithSocketPtr(socket_ptr);
+		if (0 >= m_key_to_network_id_map.count(key))
+			return;
+
+		int network_id = m_key_to_network_id_map[key];
+
+		for(std::list<INetworkHandler*>::iterator it = m_network_handler_list.begin(); it != m_network_handler_list.end(); ++ it)
+		{
+			(*it)->OnRecv(network_id, buff, buff_size);
+		}
+	}
+
+	void NetworkManager::OnSendData(SocketPtr socket_ptr, const boost::system::error_code& error)
+	{
+		if (!error)
+		{
+			// send successful
+		}
+		else
+		{
+			this->OnDisconnect(socket_ptr);
+		}
+	}
+
+	void NetworkManager::OnDisconnect(SocketPtr socket_ptr)
+	{
+		std::cout<<"disconnected";
+
+		std::map<std::string, NetworkID>::iterator it = m_key_to_network_id_map.find(this->GetKeyWithSocketPtr(socket_ptr));
+		if (it != m_key_to_network_id_map.end())
+		{
+			m_socket_set.erase(socket_ptr);
+			NetworkID netid = it->second;
+			m_network_id_socket_map.erase(netid);
+			m_free_netid_stack.push(netid);
+			m_key_to_network_id_map.erase(it);
+
+			for(std::list<INetworkHandler*>::iterator it = m_network_handler_list.begin(); it != m_network_handler_list.end(); ++ it)
+			{
+				(*it)->OnDisconnect(netid);
+			}
+		}
+		socket_ptr->GetSocket().close();
+	}
+
+	NetworkID NetworkManager::GetNewNetworkID()
 	{
 		if (m_free_netid_stack.size() > 0)
 		{
@@ -160,21 +245,11 @@ namespace face2wind
 		return m_cur_max_netid;
 	}
 
-	void NetworkManager::OnDisconnect(SocketPtr socket_ptr)
+	std::string NetworkManager::GetKeyWithSocketPtr(SocketPtr socket_ptr)
 	{
-		std::cout<<"disconnected";
-		socket_ptr->GetSocket().close();
+		std::string key;
+
+		return key;
 	}
 
-	void NetworkManager::OnSendData(SocketPtr socket_ptr, const boost::system::error_code& error)
-	{
-		if (!error)
-		{
-			// send successful
-		}
-		else
-		{
-			OnDisconnect(socket_ptr);
-		}
-	}
 }
