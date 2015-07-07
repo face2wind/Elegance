@@ -12,6 +12,9 @@ namespace face2wind
 	class INetworkHandler
 	{
 	public:
+		INetworkHandler(){}
+		virtual ~INetworkHandler(){}
+
 		/*
 		当调用异步ConnectAsyn结果返回后回调
 		@is_success			连接结果是否成功

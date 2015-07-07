@@ -27,6 +27,7 @@ namespace face2wind
 		{
 			m_network_mgr->OnAccept(socket_ptr);
 
+			//socket_ptr->ChangeBufferSize(MESSAGE_HEADER_LENGTH);
 			socket_ptr->ChangeBufferSize(MESSAGE_HEADER_LENGTH);
 			boost::asio::async_read(socket_ptr->GetSocket(),
 				boost::asio::buffer(socket_ptr->GetBuffer(), MESSAGE_HEADER_LENGTH),
@@ -36,7 +37,7 @@ namespace face2wind
 		}
 		else
 		{
-			std::cout<<"accept error : "<<error.message()<<std::endl;
+			std::cout<<"AcceptSession::OnAccept Error : "<<error.message()<<std::endl;
 		}
 	}
 
@@ -44,7 +45,8 @@ namespace face2wind
 	{
 		if (!error)
 		{
-			MessageHeader body_length = *(MessageHeader*)(socket_ptr->GetBuffer());
+			char *read_buff = socket_ptr->GetBuffer();
+			MessageHeader body_length = *(MessageHeader*)(read_buff);
 			socket_ptr->ChangeBufferSize(body_length);
 			boost::asio::async_read(socket_ptr->GetSocket(),
 				boost::asio::buffer(socket_ptr->GetBuffer(), body_length),
@@ -55,7 +57,7 @@ namespace face2wind
 			if (error == boost::asio::error::eof)
 				std::cout<<"been disconnected : "<<error.message()<<std::endl;
 			else
-				std::cout<<"read head error : "<<error.message()<<std::endl;
+				std::cout<<"AcceptSession::OnRecvHead Error : "<<error.message()<<std::endl;
 
 			if (NULL != m_network_mgr)
 				m_network_mgr->OnDisconnect(socket_ptr);
@@ -66,6 +68,8 @@ namespace face2wind
 	{
 		if (!error)
 		{
+			char *read_buff = socket_ptr->GetBuffer();
+			m_network_mgr->OnRecv(socket_ptr);
 			socket_ptr->ChangeBufferSize(MESSAGE_HEADER_LENGTH);
 			boost::asio::async_read(socket_ptr->GetSocket(),
 				boost::asio::buffer(socket_ptr->GetBuffer(), MESSAGE_HEADER_LENGTH),
@@ -74,9 +78,7 @@ namespace face2wind
 		else
 		{
 			if (error == boost::asio::error::eof)
-				std::cout<<"been disconnected : "<<error.message()<<std::endl;
-			else
-				std::cout<<"read body error : "<<error.message()<<std::endl;
+				std::cout<<"AcceptSession::OnRecvBody Error : "<<error.message()<<std::endl;
 
 			if (NULL != m_network_mgr)
 				m_network_mgr->OnDisconnect(socket_ptr);

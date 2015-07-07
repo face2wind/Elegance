@@ -24,8 +24,10 @@ namespace face2wind
 				return false;
 
 			m_buffer_size = size;
-			if (NULL != m_buffer) delete [] m_buffer;
-			m_buffer = new char(size);
+			if (NULL != m_buffer)
+				delete [] m_buffer;
+			m_buffer = new char[size];
+			memset(m_buffer, 0, m_buffer_size);
 
 			return true;
 		}
@@ -38,8 +40,8 @@ namespace face2wind
 
 	typedef boost::shared_ptr<SocketData> SocketPtr;
 
-	static const int MESSAGE_HEADER_LENGTH = 2;
-	typedef unsigned short MessageHeader;
+	typedef unsigned int MessageHeader;
+	static const int MESSAGE_HEADER_LENGTH = sizeof(MessageHeader);
 }
 
 #endif

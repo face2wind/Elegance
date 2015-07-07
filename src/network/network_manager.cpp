@@ -80,20 +80,30 @@ namespace face2wind
 		if (m_network_id_socket_map.count(network_id) <= 0)
 			return false;
 
+		MessageBufferPtr buff(new MessageBuffer());
 
+		// insert the head on data begin
+		buff->ChangeBufferSize(length + MESSAGE_HEADER_LENGTH);
+		char *real_buff = buff->GetBuffer();
+		MessageHeader *head = (MessageHeader*)real_buff;
+		*head = length;
+		char *body = real_buff + MESSAGE_HEADER_LENGTH;
+		memcpy(body, data, length);
+		
 		if (io_service_running)
-			m_io_service.post(boost::bind(&NetworkManager::DoAsyncSendData, this, network_id, data, length));
+			m_io_service.post(boost::bind(&NetworkManager::DoAsyncSendData, this, network_id, buff));
 		else
-			this->DoAsyncSendData(network_id, data, length);
+			this->DoAsyncSendData(network_id, buff);
 		return true;
 	}
 
-	bool NetworkManager::DoAsyncSendData(NetworkID network_id, char *data, int length)
+	bool NetworkManager::DoAsyncSendData(NetworkID network_id, MessageBufferPtr buff)
 	{
 		SocketPtr socket_ptr = m_network_id_socket_map[network_id];
-			boost::asio::async_write(socket_ptr->GetSocket(),
-				boost::asio::buffer(data, length),
-				boost::bind(&NetworkManager::OnSendData, this, socket_ptr, boost::asio::placeholders::error));
+		boost::asio::async_write(socket_ptr->GetSocket(),
+			boost::asio::buffer(buff->GetBuffer(), buff->GetBufferSize()),
+			boost::bind(&NetworkManager::OnSendData, this, socket_ptr, boost::asio::placeholders::error));
+
 		return true;
 	}
 
@@ -148,31 +158,22 @@ namespace face2wind
 			return;
 		}
 
-// 		Port local_port = 0;
-// 		Port remote_port = 0;
-// 		IPAddr remote_ip_addr("");
-// 		NetworkID network_id = 0;
-// 		if (is_success)
-// 		{
-// 			local_port = socket_ptr->GetSocket().local_endpoint().port();
-// 			remote_ip_addr = socket_ptr->GetSocket().remote_endpoint().address().to_v4().to_string();
-// 			remote_port = socket_ptr->GetSocket().remote_endpoint().port();
-// 			std::cout<<"Connect successful : local_port=["<<local_port<<"], remote["<< remote_ip_addr << "-" << remote_port << "]" << std::endl;
-// 
-// 			m_socket_set.insert(socket_ptr);
-// 			network_id = this->GetNewNetworkID();
-// 			m_network_id_socket_map[network_id] = socket_ptr;
-// 			m_key_to_network_id_map[this->GetKeyWithSocketPtr(socket_ptr)] = network_id;
-// 		}
-		Port local_port = socket_ptr->GetSocket().local_endpoint().port();
-		IPAddr remote_ip_addr = socket_ptr->GetSocket().remote_endpoint().address().to_v4().to_string();
-		Port remote_port = socket_ptr->GetSocket().remote_endpoint().port();
-		std::cout<<"Accept successful : local_port=["<<local_port<<"], remote["<< remote_ip_addr << "-" << remote_port << "]" << std::endl;
-		
-		m_socket_set.insert(socket_ptr);
-		NetworkID network_id = this->GetNewNetworkID();
-		m_network_id_socket_map[network_id] = socket_ptr;
-		m_key_to_network_id_map[this->GetKeyWithSocketPtr(socket_ptr)] = network_id;
+		Port local_port = 0;
+		Port remote_port = 0;
+		IPAddr remote_ip_addr("");
+		NetworkID network_id = 0;
+		if (is_success)
+		{
+			local_port = socket_ptr->GetSocket().local_endpoint().port();
+			remote_ip_addr = socket_ptr->GetSocket().remote_endpoint().address().to_v4().to_string();
+			remote_port = socket_ptr->GetSocket().remote_endpoint().port();
+			std::cout<<"Connect successful : local_port=["<<local_port<<"], remote["<< remote_ip_addr << "-" << remote_port << "]" << std::endl;
+
+			m_socket_set.insert(socket_ptr);
+			network_id = this->GetNewNetworkID();
+			m_network_id_socket_map[network_id] = socket_ptr;
+			m_key_to_network_id_map[this->GetKeyWithSocketPtr(socket_ptr)] = network_id;
+		}
 
 		for(std::list<INetworkHandler*>::iterator it = m_network_handler_list.begin(); it != m_network_handler_list.end(); ++ it)
 		{
@@ -203,10 +204,11 @@ namespace face2wind
 	{
 		if (!error)
 		{
-			// send successful
+			std::cout<<"NetworkManager::OnSendData Success!"<<std::endl;
 		}
 		else
 		{
+			std::cout<<"NetworkManager::OnSendData Error"<< error.message() << std::endl;
 			this->OnDisconnect(socket_ptr);
 		}
 	}
@@ -248,7 +250,12 @@ namespace face2wind
 	std::string NetworkManager::GetKeyWithSocketPtr(SocketPtr socket_ptr)
 	{
 		std::string key;
-
+		Port local_port = socket_ptr->GetSocket().local_endpoint().port();
+		IPAddr remote_ip_addr = socket_ptr->GetSocket().remote_endpoint().address().to_v4().to_string();
+		Port remote_port = socket_ptr->GetSocket().remote_endpoint().port();
+		std::stringstream ss;
+		ss << local_port << "_" << remote_ip_addr << "_" << remote_port;
+		ss >> key;
 		return key;
 	}
 

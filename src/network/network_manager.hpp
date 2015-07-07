@@ -20,6 +20,46 @@ namespace face2wind
 
 	class NetworkManager
 	{
+		struct MessageBuffer
+		{
+			MessageBuffer() : m_buffer(NULL), m_buffer_size(0) {}
+			~MessageBuffer()
+			{
+				this->ChangeBufferSize(0);
+			}
+
+			char *GetBuffer() { return m_buffer; }
+			int GetBufferSize() { return m_buffer_size; }
+
+			bool SetBuffer(char *buff, int length)
+			{
+				if (0 >= length)
+					return false;
+
+				this->ChangeBufferSize(length);
+				memcpy(m_buffer, buff, length);
+
+				return true;
+			}
+
+			bool ChangeBufferSize(int size)
+			{
+				m_buffer_size = size;
+				if (NULL != m_buffer) delete [] m_buffer;
+				if (size > 0)
+				{
+					m_buffer = new char[size];
+					memset(m_buffer, 0, m_buffer_size);
+				}
+
+				return true;
+			}
+			char *m_buffer;
+			int m_buffer_size;
+		};
+
+		typedef boost::shared_ptr<MessageBuffer> MessageBufferPtr;
+
 	public:
 		friend class AcceptSession;
 		friend class ConnectSession;
@@ -34,7 +74,6 @@ namespace face2wind
 		bool AsyncConnect(const std::string &host, Port port);
 
 		bool AsyncSendData(NetworkID network_id, char *data, int length);
-		bool DoAsyncSendData(NetworkID network_id, char *data, int length);
 
 		bool AsyncRun();
 		bool SyncRun();
@@ -47,6 +86,8 @@ namespace face2wind
 		void OnRecv(SocketPtr socket_ptr);
 		void OnSendData(SocketPtr socket_ptr, const boost::system::error_code& error);
 		void OnDisconnect(SocketPtr socket_ptr);
+
+		bool DoAsyncSendData(NetworkID network_id, MessageBufferPtr buff);
 
 		NetworkID GetNewNetworkID();
 		std::string GetKeyWithSocketPtr(SocketPtr socket_ptr);
