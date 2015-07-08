@@ -29,12 +29,15 @@ namespace face2wind
 				boost::asio::buffer(socket_ptr->GetBuffer(), MESSAGE_HEADER_LENGTH),
 				boost::bind(&ConnectSession::OnRecvHead, this, socket_ptr, boost::asio::placeholders::error));
 
-			m_network_mgr->OnConnect(socket_ptr, true);
+			if (NULL != m_network_mgr)
+				m_network_mgr->OnConnect(socket_ptr, true);
 		}
 		else
 		{
 			std::cout<<"ConnectSession::OnConnect Error : "<<error.message()<<std::endl;
-			m_network_mgr->OnConnect(socket_ptr, false);
+
+			if (NULL != m_network_mgr)
+				m_network_mgr->OnConnect(socket_ptr, false);
 		}
 	}
 
@@ -50,8 +53,7 @@ namespace face2wind
 		}
 		else
 		{
-			if (error == boost::asio::error::eof)
-				std::cout<<"ConnectSession::OnRecvHead Error: "<<error.message()<<std::endl;
+			std::cout<<"ConnectSession::OnRecvHead Error: "<<error.message()<<std::endl;
 
 			if (NULL != m_network_mgr)
 				m_network_mgr->OnDisconnect(socket_ptr);
@@ -62,7 +64,9 @@ namespace face2wind
 	{
 		if (!error)
 		{
-			m_network_mgr->OnRecv(socket_ptr);
+			if (NULL != m_network_mgr)
+				m_network_mgr->OnRecv(socket_ptr);
+
 			socket_ptr->ChangeBufferSize(MESSAGE_HEADER_LENGTH);
 			boost::asio::async_read(socket_ptr->GetSocket(),
 				boost::asio::buffer(socket_ptr->GetBuffer(), MESSAGE_HEADER_LENGTH),
@@ -70,8 +74,7 @@ namespace face2wind
 		}
 		else
 		{
-			if (error == boost::asio::error::eof)
-				std::cout<<"ConnectSession::OnRecvBody Error : "<<error.message()<<std::endl;
+			std::cout<<"ConnectSession::OnRecvBody Error : "<<error.message()<<std::endl;
 
 			if (NULL != m_network_mgr)
 				m_network_mgr->OnDisconnect(socket_ptr);

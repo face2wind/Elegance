@@ -10,6 +10,7 @@
 #include <set>
 #include <stack>
 #include <vector>
+#include <list>
 
 namespace face2wind
 {
@@ -89,10 +90,13 @@ namespace face2wind
 
 		bool DoAsyncSendData(NetworkID network_id, MessageBufferPtr buff);
 
+		void Stop();
+
 		NetworkID GetNewNetworkID();
 		std::string GetKeyWithSocketPtr(SocketPtr socket_ptr);
 	private:
 		boost::asio::io_service m_io_service;
+		boost::asio::signal_set m_signals;
 		bool io_service_running;
 
 		std::vector<AcceptSession*> m_accept_session_list;

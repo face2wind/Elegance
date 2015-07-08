@@ -23,6 +23,8 @@ namespace face2wind
 		void Run();
 		void Stop();
 
+		void OnProgramExit();
+
 		bool RegisterModule(const std::string name, IModule* module);
 		bool UnregisterModule(const std::string name);
 
@@ -32,7 +34,10 @@ namespace face2wind
 		Game& operator=(const Game&);
 
 	protected:
+		boost::asio::io_service m_io_service;
+		boost::asio::signal_set m_signals;
 		bool keep_running;
+		bool program_exit;
 		ModuleMap module_map;
 	};
 }

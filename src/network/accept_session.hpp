@@ -29,7 +29,6 @@ namespace face2wind
 		void OnAccept(SocketPtr socket_ptr, const boost::system::error_code& error);
 		void OnRecvHead(SocketPtr socket_ptr, const boost::system::error_code& error);
 		void OnRecvBody(SocketPtr socket_ptr, const boost::system::error_code& error);
-		void OnDisconnect(NetworkID network_id);
 
 	private:
 		NetworkManager *m_network_mgr;

@@ -54,10 +54,7 @@ namespace face2wind
 		}
 		else
 		{
-			if (error == boost::asio::error::eof)
-				std::cout<<"been disconnected : "<<error.message()<<std::endl;
-			else
-				std::cout<<"AcceptSession::OnRecvHead Error : "<<error.message()<<std::endl;
+			std::cout<<"AcceptSession::OnRecvHead Error : "<<error.message()<<std::endl;
 
 			if (NULL != m_network_mgr)
 				m_network_mgr->OnDisconnect(socket_ptr);
@@ -68,7 +65,6 @@ namespace face2wind
 	{
 		if (!error)
 		{
-			char *read_buff = socket_ptr->GetBuffer();
 			m_network_mgr->OnRecv(socket_ptr);
 			socket_ptr->ChangeBufferSize(MESSAGE_HEADER_LENGTH);
 			boost::asio::async_read(socket_ptr->GetSocket(),
@@ -83,11 +79,6 @@ namespace face2wind
 			if (NULL != m_network_mgr)
 				m_network_mgr->OnDisconnect(socket_ptr);
 		}
-	}
-
-	void AcceptSession::OnDisconnect(NetworkID network_id)
-	{
-
 	}
 
 }

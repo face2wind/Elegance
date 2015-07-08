@@ -9,8 +9,22 @@
 namespace face2wind
 {
 
-	NetworkManager::NetworkManager() : io_service_running(false), m_cur_max_netid(0)
+	NetworkManager::NetworkManager() : m_signals(m_io_service), io_service_running(false), m_cur_max_netid(0)
 	{
+		m_signals.add(SIGINT);
+		m_signals.add(SIGILL);
+		m_signals.add(SIGFPE);
+		m_signals.add(SIGSEGV);
+		m_signals.add(SIGTERM);
+		m_signals.add(SIGABRT);
+#if defined(SIGBREAK)
+		m_signals.add(SIGBREAK);
+#endif // defined(SIGQUIT)
+#if defined(SIGQUIT)
+		m_signals.add(SIGQUIT);
+#endif // defined(SIGQUIT)
+
+		m_signals.async_wait(boost::bind(&NetworkManager::Stop, this));
 	}
 
 	NetworkManager::~NetworkManager()
@@ -22,6 +36,8 @@ namespace face2wind
 		for (std::vector<ConnectSession*>::iterator it = m_connect_session_list.begin(); it != m_connect_session_list.end(); ++ it)
 			delete *it;
 		m_connect_session_list.clear();
+
+		this->Stop();
 	}
 
 	NetworkManager *NetworkManager::GetInstance()
@@ -232,6 +248,19 @@ namespace face2wind
 			}
 		}
 		socket_ptr->GetSocket().close();
+	}
+
+	// The server is stopped by cancelling all outstanding asynchronous
+	// operations. Once all operations have finished the io_service::run()
+	// call will exit.
+	void NetworkManager::Stop()
+	{
+		if (io_service_running)
+		{
+			m_io_service.stop();
+			io_service_running = false;
+			std::cout<<"NetworkManager my god , stop...."<<std::endl;
+		}
 	}
 
 	NetworkID NetworkManager::GetNewNetworkID()
