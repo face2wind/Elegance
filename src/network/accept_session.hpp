@@ -26,6 +26,8 @@ namespace face2wind
 		~AcceptSession(){}
 
 		void AsyncListen();
+
+	protected:
 		void OnAccept(SocketPtr socket_ptr, const boost::system::error_code& error);
 		void OnRecvHead(SocketPtr socket_ptr, const boost::system::error_code& error);
 		void OnRecvBody(SocketPtr socket_ptr, const boost::system::error_code& error);

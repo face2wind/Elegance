@@ -113,6 +113,15 @@ namespace face2wind
 		return true;
 	}
 
+	bool NetworkManager::Disconnect(NetworkID network_id)
+	{
+		if (m_network_id_socket_map.count(network_id) <= 0)
+			return false;
+
+		this->OnDisconnect(m_network_id_socket_map[network_id]);
+		return true;
+	}
+
 	bool NetworkManager::DoAsyncSendData(NetworkID network_id, MessageBufferPtr buff)
 	{
 		SocketPtr socket_ptr = m_network_id_socket_map[network_id];
@@ -220,7 +229,7 @@ namespace face2wind
 	{
 		if (!error)
 		{
-			std::cout<<"NetworkManager::OnSendData Success!"<<std::endl;
+			//std::cout<<"NetworkManager::OnSendData Success!"<<std::endl;
 		}
 		else
 		{

@@ -41,7 +41,7 @@ namespace face2wind {
     unsigned long long ReadUnsignedInt64();
     double ReadDouble();
 
-    std::string ReadString();
+    std::string ReadAS3String();
     void *ReadObject(unsigned int size);
 
     void WriteSignedInt8(const signed char &value);

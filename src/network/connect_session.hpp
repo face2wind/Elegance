@@ -23,6 +23,8 @@ namespace face2wind
 		~ConnectSession(){}
 
 		void AsyncConnect();
+
+	protected:
 		void OnConnect(SocketPtr socket_ptr, const boost::system::error_code& error);
 		void OnRecvHead(SocketPtr socket_ptr, const boost::system::error_code& error);
 		void OnRecvBody(SocketPtr socket_ptr, const boost::system::error_code& error);

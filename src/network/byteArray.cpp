@@ -116,7 +116,7 @@ namespace face2wind {
     return value;
   }
 
-  std::string ByteArray::ReadString()
+  std::string ByteArray::ReadAS3String()
   {
     std::string str;
     if(2 > _bytes.size()) // not enough length bytes

@@ -56,7 +56,7 @@ namespace face2wind
 		{
 			std::cout<<"AcceptSession::OnRecvHead Error : "<<error.message()<<std::endl;
 
-			if (NULL != m_network_mgr)
+			if (NULL != m_network_mgr && socket_ptr->GetSocket().is_open())
 				m_network_mgr->OnDisconnect(socket_ptr);
 		}
 	}
@@ -66,17 +66,21 @@ namespace face2wind
 		if (!error)
 		{
 			m_network_mgr->OnRecv(socket_ptr);
-			socket_ptr->ChangeBufferSize(MESSAGE_HEADER_LENGTH);
-			boost::asio::async_read(socket_ptr->GetSocket(),
-				boost::asio::buffer(socket_ptr->GetBuffer(), MESSAGE_HEADER_LENGTH),
-				boost::bind(&AcceptSession::OnRecvHead, this, socket_ptr, boost::asio::placeholders::error));
+
+			if (socket_ptr->GetSocket().is_open())
+			{
+				socket_ptr->ChangeBufferSize(MESSAGE_HEADER_LENGTH);
+				boost::asio::async_read(socket_ptr->GetSocket(),
+					boost::asio::buffer(socket_ptr->GetBuffer(), MESSAGE_HEADER_LENGTH),
+					boost::bind(&AcceptSession::OnRecvHead, this, socket_ptr, boost::asio::placeholders::error));
+			}
 		}
 		else
 		{
 			if (error == boost::asio::error::eof)
 				std::cout<<"AcceptSession::OnRecvBody Error : "<<error.message()<<std::endl;
 
-			if (NULL != m_network_mgr)
+			if (NULL != m_network_mgr && socket_ptr->GetSocket().is_open())
 				m_network_mgr->OnDisconnect(socket_ptr);
 		}
 	}

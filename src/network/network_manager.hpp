@@ -69,12 +69,10 @@ namespace face2wind
 		static NetworkManager *GetInstance();
 
 		bool RegistHandler(INetworkHandler *handler);
-
 		bool AsyncListen(int port);
-
 		bool AsyncConnect(const std::string &host, Port port);
-
 		bool AsyncSendData(NetworkID network_id, char *data, int length);
+		bool Disconnect(NetworkID network_id);
 
 		bool AsyncRun();
 		bool SyncRun();
