@@ -1,4 +1,4 @@
-#include "byteArray.h"
+#include "byte_array.hpp"
 
 #include <iostream>
 
@@ -275,7 +275,7 @@ namespace face2wind {
 
   void ByteArray::ReadFromByteArray(ByteArray *other, int bytesLen)
   {
-    if(0 == bytesLen || other->BytesAvailable() < bytesLen)
+    if(0 == bytesLen || other->BytesAvailable() < (unsigned int)bytesLen)
       bytesLen = other->BytesAvailable();
     for(int i = 0; i < bytesLen ; i++){
       _bytes.push_back(other->_bytes[0]);

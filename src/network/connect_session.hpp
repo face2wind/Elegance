@@ -1,7 +1,7 @@
 #ifndef _CONNECT_SESSION_HPP_
 #define _CONNECT_SESSION_HPP_
 
-#include "network/network_basic.hpp"
+#include "network/i_network.hpp"
 #include "network/socket_data.hpp"
 
 #include <boost/shared_ptr.hpp>
@@ -13,11 +13,11 @@
 
 namespace face2wind
 {
-	class NetworkManager;
+	class Network;
 
 	class ConnectSession
 	{
-		friend class NetworkManager;
+		friend class Network;
 	public:
 		ConnectSession(boost::asio::io_service &io_service, tcp::resolver::iterator iterator);
 		~ConnectSession(){}
@@ -30,7 +30,7 @@ namespace face2wind
 		void OnRecvBody(SocketPtr socket_ptr, const boost::system::error_code& error);
 
 	private:
-		NetworkManager *m_network_mgr;
+		Network *m_network_mgr;
 		boost::asio::io_service &m_io_service;
 		tcp::resolver::iterator m_iterator;
 

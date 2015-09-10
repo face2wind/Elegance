@@ -66,6 +66,7 @@ bool Network::AsyncListen(int port)
   else
     session->AsyncListen();
   m_accept_session_list.push_back(session);
+
   return true;
 }
 
@@ -87,6 +88,7 @@ bool Network::AsyncConnect(const std::string &host, Port port)
   else
     session->AsyncConnect();
   m_connect_session_list.push_back(session);
+
   return true;
 }
 
@@ -171,7 +173,7 @@ void Network::OnAccept(SocketPtr socket_ptr)
 
   std::stringstream ss;
   ss << "Accept successful : local_port=[" << socket_ptr->GetLocalPort() << "], remote[" << socket_ptr->GetRemoteIP() << "-" << socket_ptr->GetRemotePort() << "]";
-  DebugMessage::GetInstance()->ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+  DebugMessage::GetInstance()->ShowMessage(DebugMessageType::DEBUG_MESSAGE_TYPE_BASE_NETWORK, ss.str());
 
   m_socket_set.insert(socket_ptr);
   NetworkID network_id = this->GetIdleNetworkID();
@@ -202,7 +204,7 @@ void Network::OnConnect(SocketPtr socket_ptr, bool is_success)
 
     std::stringstream ss;
     ss <<"Connect successful : local_port=["<< socket_ptr->GetLocalPort()<<"], remote["<< socket_ptr->GetRemoteIP() << "-" << socket_ptr->GetRemotePort() << "]";
-    DebugMessage::GetInstance()->ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+    DebugMessage::GetInstance()->ShowMessage(DebugMessageType::DEBUG_MESSAGE_TYPE_BASE_NETWORK, ss.str());
 
     m_socket_set.insert(socket_ptr);
     network_id = this->GetIdleNetworkID();
@@ -245,7 +247,7 @@ void Network::OnSendData(SocketPtr socket_ptr, const boost::system::error_code& 
   {
     std::stringstream ss;
     ss << "NetworkManager::OnSendData Error" << error.message();
-    DebugMessage::GetInstance()->ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+    DebugMessage::GetInstance()->ShowMessage(DebugMessageType::DEBUG_MESSAGE_TYPE_BASE_NETWORK, ss.str());
     this->OnDisconnect(socket_ptr);
   }
 }
@@ -254,7 +256,7 @@ void Network::OnDisconnect(SocketPtr socket_ptr)
 {
 	std::stringstream ss;
 	ss << "disconnected : local_port=[" << socket_ptr->GetLocalPort() << "], remote[" << socket_ptr->GetRemoteIP() << "-" << socket_ptr->GetRemotePort() << "]";
-	DebugMessage::GetInstance()->ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+	DebugMessage::GetInstance()->ShowMessage(DebugMessageType::DEBUG_MESSAGE_TYPE_BASE_NETWORK, ss.str());
 
 	std::map<std::string, NetworkID>::iterator it = m_key_to_network_id_map.find(socket_ptr->GetUniqueKey());
   if (it != m_key_to_network_id_map.end())

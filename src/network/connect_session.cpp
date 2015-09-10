@@ -1,5 +1,6 @@
-#include "network/network_manager.hpp"
+#include "network/network.hpp"
 #include "network/connect_session.hpp"
+#include "common/debug_message.hpp"
 
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
@@ -34,10 +35,13 @@ namespace face2wind
 		}
 		else
 		{
-			std::cout<<"ConnectSession::OnConnect Error : "<<error.message()<<std::endl;
+			std::stringstream ss;
+			ss << "ConnectSession::OnConnect Error : " << error.message();
+			DebugMessage::GetInstance()->ShowMessage(DebugMessageType::DEBUG_MESSAGE_TYPE_BASE_NETWORK, ss.str());
 
 			if (NULL != m_network_mgr)
 				m_network_mgr->OnConnect(socket_ptr, false);
+			// 连接失败，调用上层接口 xxxxxxx
 		}
 	}
 
@@ -53,7 +57,9 @@ namespace face2wind
 		}
 		else
 		{
-			std::cout<<"ConnectSession::OnRecvHead Error: "<<error.message()<<std::endl;
+			std::stringstream ss;
+			ss << "ConnectSession::OnRecvHead Error: " << error.message();
+			DebugMessage::GetInstance()->ShowMessage(DebugMessageType::DEBUG_MESSAGE_TYPE_BASE_NETWORK, ss.str());
 
 			if (NULL != m_network_mgr && socket_ptr->GetSocket().is_open())
 				m_network_mgr->OnDisconnect(socket_ptr);
@@ -77,7 +83,9 @@ namespace face2wind
 		}
 		else
 		{
-			std::cout<<"ConnectSession::OnRecvBody Error : "<<error.message()<<std::endl;
+			std::stringstream ss;
+			ss << "ConnectSession::OnRecvBody Error : " << error.message();
+			DebugMessage::GetInstance()->ShowMessage(DebugMessageType::DEBUG_MESSAGE_TYPE_BASE_NETWORK, ss.str());
 
 			if (NULL != m_network_mgr && socket_ptr->GetSocket().is_open())
 				m_network_mgr->OnDisconnect(socket_ptr);
