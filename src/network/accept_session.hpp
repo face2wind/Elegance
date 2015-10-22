@@ -1,7 +1,7 @@
 #ifndef _ACCEPT_SESSION_HPP_
 #define _ACCEPT_SESSION_HPP_
 
-#include "network/i_network.hpp"
+#include "network/network.hpp"
 #include "network/socket_data.hpp"
 
 #include <boost/shared_ptr.hpp>

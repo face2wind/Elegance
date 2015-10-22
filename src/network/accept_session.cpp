@@ -26,9 +26,8 @@ void AcceptSession::OnAccept(SocketPtr socket_ptr, const boost::system::error_co
 {
   if (!error)
   {
-    m_network_mgr->OnAccept(socket_ptr);
+    m_network_mgr->OnAccept(socket_ptr, true);
 
-    //socket_ptr->ChangeBufferSize(MESSAGE_HEADER_LENGTH);
     socket_ptr->ChangeBufferSize(MESSAGE_HEADER_LENGTH);
     boost::asio::async_read(socket_ptr->GetSocket(),
                             boost::asio::buffer(socket_ptr->GetBuffer(), MESSAGE_HEADER_LENGTH),
@@ -42,7 +41,7 @@ void AcceptSession::OnAccept(SocketPtr socket_ptr, const boost::system::error_co
     ss << "AcceptSession::OnAccept Error : " << error.message();
     DebugMessage::GetInstance()->ShowMessage(DebugMessageType::DEBUG_MESSAGE_TYPE_BASE_NETWORK, ss.str());
 
-		// 监听失败，调用上层接口 xxxxxxx
+    m_network_mgr->OnAccept(socket_ptr, false);
   }
 }
 

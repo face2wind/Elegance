@@ -77,7 +77,7 @@ class Network
   bool AsyncConnect(const std::string &host, Port port);
   bool AsyncSendData(NetworkID network_id, const char *data, int length);
   bool Disconnect(NetworkID network_id);
-	bool HasConnected(NetworkID network_id);
+  bool HasConnected(NetworkID network_id);
 
   bool AsyncRun();
   bool SyncRun();
@@ -86,7 +86,7 @@ class Network
  protected:
   Network();
 
-  void OnAccept(SocketPtr socket_ptr);
+  void OnAccept(SocketPtr socket_ptr, bool is_success);
   void OnConnect(SocketPtr socket_ptr, bool is_success);
   void OnRecv(SocketPtr socket_ptr);
   void OnSendData(SocketPtr socket_ptr, const boost::system::error_code& error);
@@ -94,7 +94,7 @@ class Network
 
   NetworkID GetIdleNetworkID();
 
-	bool DoAsyncSendData(NetworkID network_id, MessageBufferPtr buff);
+  bool DoAsyncSendData(NetworkID network_id, MessageBufferPtr buff);
 
  private:
   boost::asio::io_service m_io_service;

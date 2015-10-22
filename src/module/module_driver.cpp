@@ -1,4 +1,5 @@
 #include "network/network.hpp"
+#include "module/i_module.hpp"
 #include <boost/thread.hpp>
 #include "module_driver.hpp"
 

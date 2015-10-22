@@ -66,7 +66,7 @@ bool Network::AsyncListen(int port)
   else
     session->AsyncListen();
   m_accept_session_list.push_back(session);
-
+  
   return true;
 }
 
@@ -88,7 +88,7 @@ bool Network::AsyncConnect(const std::string &host, Port port)
   else
     session->AsyncConnect();
   m_connect_session_list.push_back(session);
-
+  
   return true;
 }
 
@@ -130,10 +130,10 @@ bool Network::Disconnect(NetworkID network_id)
 
 bool Network::HasConnected(NetworkID network_id)
 {
-	if (m_network_id_socket_map.count(network_id) <= 0)
-		return false;
-	else
-		return true;
+  if (m_network_id_socket_map.count(network_id) <= 0)
+    return false;
+  else
+    return true;
 }
 
 bool Network::AsyncRun()
@@ -158,31 +158,35 @@ bool Network::SyncRun()
   return true;
 }
 
-void Network::OnAccept(SocketPtr socket_ptr)
+void Network::OnAccept(SocketPtr socket_ptr, bool is_success)
 {
   if (m_socket_set.find(socket_ptr) != m_socket_set.end()) // aleady has one
   {
     return;
   }
 
-  if (!socket_ptr->InitSocketData())
+  NetworkID network_id = 0;
+  if (is_success)
   {
-    this->OnDisconnect(socket_ptr);
-    return;
+    if (!socket_ptr->InitSocketData())
+    {
+      this->OnDisconnect(socket_ptr);
+      return;
+    }
+		network_id = this->GetIdleNetworkID();
+    
+    std::stringstream ss;
+    ss << "Accept successful : network_id [" << network_id << "] local_port=[" << socket_ptr->GetLocalPort() << "], remote[" << socket_ptr->GetRemoteIP() << "-" << socket_ptr->GetRemotePort() << "]";
+    DebugMessage::GetInstance()->ShowMessage(DebugMessageType::DEBUG_MESSAGE_TYPE_BASE_NETWORK, ss.str());
+    
+    m_socket_set.insert(socket_ptr);
+    m_network_id_socket_map[network_id] = socket_ptr;
+    m_key_to_network_id_map[socket_ptr->GetUniqueKey()] = network_id;
   }
-
-  std::stringstream ss;
-  ss << "Accept successful : local_port=[" << socket_ptr->GetLocalPort() << "], remote[" << socket_ptr->GetRemoteIP() << "-" << socket_ptr->GetRemotePort() << "]";
-  DebugMessage::GetInstance()->ShowMessage(DebugMessageType::DEBUG_MESSAGE_TYPE_BASE_NETWORK, ss.str());
-
-  m_socket_set.insert(socket_ptr);
-  NetworkID network_id = this->GetIdleNetworkID();
-  m_network_id_socket_map[network_id] = socket_ptr;
-  m_key_to_network_id_map[socket_ptr->GetUniqueKey()] = network_id;
-
+  
   for(std::list<INetworkHandler*>::iterator it = m_network_handler_list.begin(); it != m_network_handler_list.end(); ++ it)
   {
-    (*it)->OnAccept(network_id, socket_ptr->GetLocalPort(), socket_ptr->GetRemoteIP(), socket_ptr->GetRemotePort());
+    (*it)->OnAccept(is_success, network_id, socket_ptr->GetLocalPort(), socket_ptr->GetRemoteIP(), socket_ptr->GetRemotePort());
   }
 }
 
@@ -195,19 +199,20 @@ void Network::OnConnect(SocketPtr socket_ptr, bool is_success)
 
   NetworkID network_id = 0;
   if (is_success)
-	{
-		if (!socket_ptr->InitSocketData())
-		{
-			this->OnDisconnect(socket_ptr);
-			return;
-		}
+  {
+    if (!socket_ptr->InitSocketData())
+    {
+      this->OnDisconnect(socket_ptr);
+      return;
+    }
+
+		network_id = this->GetIdleNetworkID();
 
     std::stringstream ss;
-    ss <<"Connect successful : local_port=["<< socket_ptr->GetLocalPort()<<"], remote["<< socket_ptr->GetRemoteIP() << "-" << socket_ptr->GetRemotePort() << "]";
+    ss <<"Connect successful : network_id [" << network_id << "] local_port=["<< socket_ptr->GetLocalPort()<<"], remote["<< socket_ptr->GetRemoteIP() << "-" << socket_ptr->GetRemotePort() << "]";
     DebugMessage::GetInstance()->ShowMessage(DebugMessageType::DEBUG_MESSAGE_TYPE_BASE_NETWORK, ss.str());
 
     m_socket_set.insert(socket_ptr);
-    network_id = this->GetIdleNetworkID();
     m_network_id_socket_map[network_id] = socket_ptr;
     m_key_to_network_id_map[socket_ptr->GetUniqueKey()] = network_id;
   }
@@ -231,10 +236,10 @@ void Network::OnRecv(SocketPtr socket_ptr)
 
   int network_id = m_key_to_network_id_map[key];
 
-	for (std::list<INetworkHandler*>::iterator it = m_network_handler_list.begin(); it != m_network_handler_list.end(); ++it)
-	{
-		(*it)->OnRecv(network_id, buff, buff_size);
-	}
+  for (std::list<INetworkHandler*>::iterator it = m_network_handler_list.begin(); it != m_network_handler_list.end(); ++it)
+  {
+    (*it)->OnRecv(network_id, buff, buff_size);
+  }
 }
 
 void Network::OnSendData(SocketPtr socket_ptr, const boost::system::error_code& error)
@@ -254,11 +259,11 @@ void Network::OnSendData(SocketPtr socket_ptr, const boost::system::error_code& 
 
 void Network::OnDisconnect(SocketPtr socket_ptr)
 {
-	std::stringstream ss;
-	ss << "disconnected : local_port=[" << socket_ptr->GetLocalPort() << "], remote[" << socket_ptr->GetRemoteIP() << "-" << socket_ptr->GetRemotePort() << "]";
-	DebugMessage::GetInstance()->ShowMessage(DebugMessageType::DEBUG_MESSAGE_TYPE_BASE_NETWORK, ss.str());
+  std::stringstream ss;
+  ss << "disconnected : local_port=[" << socket_ptr->GetLocalPort() << "], remote[" << socket_ptr->GetRemoteIP() << "-" << socket_ptr->GetRemotePort() << "]";
+  DebugMessage::GetInstance()->ShowMessage(DebugMessageType::DEBUG_MESSAGE_TYPE_BASE_NETWORK, ss.str());
 
-	std::map<std::string, NetworkID>::iterator it = m_key_to_network_id_map.find(socket_ptr->GetUniqueKey());
+  std::map<std::string, NetworkID>::iterator it = m_key_to_network_id_map.find(socket_ptr->GetUniqueKey());
   if (it != m_key_to_network_id_map.end())
   {
     m_socket_set.erase(socket_ptr);
@@ -281,9 +286,9 @@ void Network::OnDisconnect(SocketPtr socket_ptr)
 void Network::Stop()
 {
   if (io_service_running)
-	{
-		m_io_service.post(boost::bind(&boost::asio::io_service::stop, &m_io_service));
-		io_service_running = false;
+  {
+    m_io_service.post(boost::bind(&boost::asio::io_service::stop, &m_io_service));
+    io_service_running = false;
   }
 }
 
@@ -302,19 +307,19 @@ NetworkID Network::GetIdleNetworkID()
 
 bool Network::DoAsyncSendData(NetworkID network_id, MessageBufferPtr buff)
 {
-	if (false == io_service_running)
-		return false;
-	if (m_network_id_socket_map.count(network_id) <= 0)
-		return false;
+  if (false == io_service_running)
+    return false;
+  if (m_network_id_socket_map.count(network_id) <= 0)
+    return false;
 
-	SocketPtr socket_ptr = m_network_id_socket_map[network_id];
-	if (socket_ptr->GetSocket().is_open())
-	{
-		boost::asio::async_write(socket_ptr->GetSocket(),
-			boost::asio::buffer(buff->GetBuffer(), buff->GetBufferSize()),
-			boost::bind(&Network::OnSendData, this, socket_ptr, boost::asio::placeholders::error));
-	}
-	return true;
+  SocketPtr socket_ptr = m_network_id_socket_map[network_id];
+  if (socket_ptr->GetSocket().is_open())
+  {
+    boost::asio::async_write(socket_ptr->GetSocket(),
+                             boost::asio::buffer(buff->GetBuffer(), buff->GetBufferSize()),
+                             boost::bind(&Network::OnSendData, this, socket_ptr, boost::asio::placeholders::error));
+  }
+  return true;
 }
 
 

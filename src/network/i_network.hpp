@@ -32,7 +32,7 @@ namespace face2wind
 		@remote_ip_addr		远端地址，主机序
 		@remote_port		远端端口号
 		*/
-		virtual void OnAccept(NetworkID network_id, Port listen_port, IPAddr remote_ip_addr, Port remote_port) = 0;
+		virtual void OnAccept(bool is_success, NetworkID network_id, Port listen_port, IPAddr remote_ip_addr, Port remote_port) = 0;
 
 		/*
 		当收到网络消息时回调该函数
