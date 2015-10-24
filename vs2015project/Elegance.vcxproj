@@ -105,7 +105,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../src/;F:\lib\boost_1_58_0;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../src/;F:\lib\boost_1_58_0;D:\dream\software\protobuf\protobuf-3.0.0-alpha-3\src</AdditionalIncludeDirectories>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalUsingDirectories>
@@ -153,6 +153,7 @@
     <ClCompile Include="..\src\network\accept_session.cpp" />
     <ClCompile Include="..\src\network\connect_session.cpp" />
     <ClCompile Include="..\src\network\network.cpp" />
+    <ClCompile Include="..\src\network\protobuf_network.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\common\byte_array.hpp" />
@@ -166,7 +167,7 @@
     <ClInclude Include="..\src\network\connect_session.hpp" />
     <ClInclude Include="..\src\network\i_network.hpp" />
     <ClInclude Include="..\src\network\network.hpp" />
-    <ClInclude Include="..\src\network\network_basic.hpp" />
+    <ClInclude Include="..\src\network\protobuf_network.h" />
     <ClInclude Include="..\src\network\socket_data.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

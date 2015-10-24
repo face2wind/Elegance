@@ -69,34 +69,34 @@ class Network
   friend class AcceptSession;
   friend class ConnectSession;
 
-  ~Network();
+	Network();
+  virtual ~Network();
   static Network *GetInstance();
 
-  bool RegistHandler(INetworkHandler *handler);
-  bool AsyncListen(int port);
-  bool AsyncConnect(const std::string &host, Port port);
-  bool AsyncSendData(NetworkID network_id, const char *data, int length);
-  bool Disconnect(NetworkID network_id);
-  bool HasConnected(NetworkID network_id);
+	virtual bool RegistHandler(INetworkHandler *handler);
+	virtual bool AsyncListen(int port);
+	virtual bool AsyncConnect(const std::string &host, Port port);
+	virtual bool AsyncSendData(NetworkID network_id, const char *data, int length);
+	virtual bool Disconnect(NetworkID network_id);
+	virtual bool HasConnected(NetworkID network_id);
 
-  bool AsyncRun();
-  bool SyncRun();
-  void Stop();
+	virtual bool AsyncRun();
+	virtual bool SyncRun();
+	virtual void Stop();
 
- protected:
-  Network();
+protected:
 
-  void OnAccept(SocketPtr socket_ptr, bool is_success);
-  void OnConnect(SocketPtr socket_ptr, bool is_success);
-  void OnRecv(SocketPtr socket_ptr);
-  void OnSendData(SocketPtr socket_ptr, const boost::system::error_code& error);
-  void OnDisconnect(SocketPtr socket_ptr);
+	virtual void OnAccept(SocketPtr socket_ptr, bool is_success);
+	virtual void OnConnect(SocketPtr socket_ptr, bool is_success);
+	virtual void OnRecv(SocketPtr socket_ptr);
+	virtual void OnSendData(SocketPtr socket_ptr, const boost::system::error_code& error);
+	virtual void OnDisconnect(SocketPtr socket_ptr);
 
-  NetworkID GetIdleNetworkID();
+	virtual NetworkID GetIdleNetworkID();
 
-  bool DoAsyncSendData(NetworkID network_id, MessageBufferPtr buff);
+	virtual bool DoAsyncSendData(NetworkID network_id, MessageBufferPtr buff);
 
- private:
+protected:
   boost::asio::io_service m_io_service;
   boost::asio::signal_set m_signals;
   bool io_service_running;

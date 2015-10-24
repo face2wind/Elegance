@@ -16,6 +16,7 @@ namespace face2wind
 		typedef std::map<std::string, IModulePtr>::iterator ModuleMapIterator;
 
 	public:
+		ModuleDriver();
 		~ModuleDriver();
 
 		static ModuleDriver *GetInstance();
@@ -32,7 +33,6 @@ namespace face2wind
 		bool UnregisterModule(const std::string name);
 
 	private:
-		ModuleDriver();
 		ModuleDriver(const ModuleDriver&);
 		ModuleDriver& operator=(const ModuleDriver&);
 
