@@ -2,12 +2,46 @@
 
 namespace face2wind
 {
-void face2wind::RPCManager::Connect(const std::string & server_ip, Port port, const std::string key)
+
+
+IRpcRequest::IRpcRequest()
+{
+
+}
+
+IRpcRequest::IRpcRequest(char *data, int length)
+{
+
+}
+
+IRpcRequest::~IRpcRequest()
+{
+
+}
+
+RPCManager::RPCManager() : handler(NULL)
 {
 }
 
-void RPCManager::Listen(Port port, const std::string key)
+RPCManager::~RPCManager()
 {
+
+}
+
+void RPCManager::AsyncConnect(const std::string & server_ip, Port port, const std::string &key)
+{
+  
+}
+
+void RPCManager::AsyncListen(Port port, const std::string &key)
+{
+  
+}
+
+void RPCManager::AsyncCall(IRpcRequest *req)
+{
+
 }
 
 }
+
