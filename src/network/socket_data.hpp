@@ -30,10 +30,10 @@ class SocketData
     if (0 >= size)
       return false;
 
-    m_buffer_size = size;
     if (NULL != m_buffer)
       delete [] m_buffer;
-    m_buffer = new char[size];
+		m_buffer = new char[size];
+		m_buffer_size = size;
     memset(m_buffer, 0, m_buffer_size);
 
     return true;
