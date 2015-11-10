@@ -9,7 +9,7 @@
 namespace face2wind
 {
 	ConnectSession::ConnectSession(boost::asio::io_service& io_service, tcp::resolver::iterator iterator)
-		:m_network_mgr(NULL), m_io_service(io_service), m_iterator(iterator)
+		:m_network_mgr(nullptr), m_io_service(io_service), m_iterator(iterator)
 	{
 
 	}
@@ -30,7 +30,7 @@ namespace face2wind
 				boost::asio::buffer(socket_ptr->GetBuffer(), MESSAGE_HEADER_LENGTH),
 				boost::bind(&ConnectSession::OnRecvHead, this, socket_ptr, boost::asio::placeholders::error));
 
-			if (NULL != m_network_mgr && socket_ptr->GetSocket().is_open())
+			if (nullptr != m_network_mgr && socket_ptr->GetSocket().is_open())
 				m_network_mgr->OnConnect(socket_ptr, true);
 		}
 		else
@@ -39,7 +39,7 @@ namespace face2wind
 			ss << "ConnectSession::OnConnect Error : " << error.message();
 			DebugMessage::GetInstance()->ShowMessage(DebugMessageType::DEBUG_MESSAGE_TYPE_BASE_NETWORK, ss.str());
 
-			if (NULL != m_network_mgr)
+			if (nullptr != m_network_mgr)
 				m_network_mgr->OnConnect(socket_ptr, false);
 			// 连接失败，调用上层接口 xxxxxxx
 		}
@@ -61,7 +61,7 @@ namespace face2wind
 			ss << "ConnectSession::OnRecvHead Error: " << error.message();
 			DebugMessage::GetInstance()->ShowMessage(DebugMessageType::DEBUG_MESSAGE_TYPE_BASE_NETWORK, ss.str());
 
-			if (NULL != m_network_mgr && socket_ptr->GetSocket().is_open())
+			if (nullptr != m_network_mgr && socket_ptr->GetSocket().is_open())
 				m_network_mgr->OnDisconnect(socket_ptr);
 		}
 	}
@@ -70,7 +70,7 @@ namespace face2wind
 	{
 		if (!error)
 		{
-			if (NULL != m_network_mgr)
+			if (nullptr != m_network_mgr)
 				m_network_mgr->OnRecv(socket_ptr);
 
 			if (socket_ptr->GetSocket().is_open())
@@ -87,7 +87,7 @@ namespace face2wind
 			ss << "ConnectSession::OnRecvBody Error : " << error.message();
 			DebugMessage::GetInstance()->ShowMessage(DebugMessageType::DEBUG_MESSAGE_TYPE_BASE_NETWORK, ss.str());
 
-			if (NULL != m_network_mgr && socket_ptr->GetSocket().is_open())
+			if (nullptr != m_network_mgr && socket_ptr->GetSocket().is_open())
 				m_network_mgr->OnDisconnect(socket_ptr);
 		}
 	}

@@ -98,7 +98,7 @@ namespace face2wind
 
 	Message *ProtobuffNetwork::CreateMessage(const std::string &type_name)
 	{
-		Message* message = NULL;
+		Message* message = nullptr;
 		const Descriptor* descriptor = DescriptorPool::generated_pool()->FindMessageTypeByName(type_name);
 		if (descriptor)
 		{

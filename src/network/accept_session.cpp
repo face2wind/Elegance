@@ -10,7 +10,7 @@ namespace face2wind
 {
 
 AcceptSession::AcceptSession(boost::asio::io_service& io_service, tcp::endpoint new_endpoint)
-    :m_network_mgr(NULL), m_io_service(io_service), m_acceptor(m_io_service, new_endpoint)
+    :m_network_mgr(nullptr), m_io_service(io_service), m_acceptor(m_io_service, new_endpoint)
 {
 
 }
@@ -62,7 +62,7 @@ void AcceptSession::OnRecvHead(SocketPtr socket_ptr, const boost::system::error_
     ss << "AcceptSession::OnRecvHead Error : " << error.message();
     DebugMessage::GetInstance()->ShowMessage(DebugMessageType::DEBUG_MESSAGE_TYPE_BASE_NETWORK, ss.str());
 
-    if (NULL != m_network_mgr && socket_ptr->GetSocket().is_open())
+    if (nullptr != m_network_mgr && socket_ptr->GetSocket().is_open())
       m_network_mgr->OnDisconnect(socket_ptr);
   }
 }
@@ -90,7 +90,7 @@ void AcceptSession::OnRecvBody(SocketPtr socket_ptr, const boost::system::error_
       DebugMessage::GetInstance()->ShowMessage(DebugMessageType::DEBUG_MESSAGE_TYPE_BASE_NETWORK, ss.str());
     }
 
-    if (NULL != m_network_mgr && socket_ptr->GetSocket().is_open())
+    if (nullptr != m_network_mgr && socket_ptr->GetSocket().is_open())
       m_network_mgr->OnDisconnect(socket_ptr);
   }
 }

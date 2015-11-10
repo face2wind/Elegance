@@ -146,7 +146,7 @@ namespace face2wind {
   void *ByteArray::ReadObject(unsigned int size)
   {
     if(size > _bytes.size())
-      return NULL;
+      return nullptr;
     if(0 == size) // 0 means use all bytes
       size = _bytes.size();
     

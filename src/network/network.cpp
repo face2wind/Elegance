@@ -49,7 +49,7 @@ Network *Network::GetInstance()
 
 bool Network::RegistHandler(INetworkHandler *handler)
 {
-  if (NULL == handler)
+  if (nullptr == handler)
     return false;
 
   m_network_handler_list.push_back(handler);
@@ -227,7 +227,7 @@ void Network::OnRecv(SocketPtr socket_ptr)
 {
   char *buff = socket_ptr->GetBuffer();
   int buff_size = socket_ptr->GetBufferSize();
-  if (NULL == buff || 0 >= buff_size)
+  if (nullptr == buff || 0 >= buff_size)
     return;
 
   std::string key = socket_ptr->GetUniqueKey();

@@ -13,9 +13,9 @@ class SocketData
 {
  public:
   SocketData(boost::asio::io_service& io_service) 
-      : m_socket(io_service), m_buffer(NULL), m_buffer_size(0),
+      : m_socket(io_service), m_buffer(nullptr), m_buffer_size(0),
         m_local_port(0), m_remote_port(0), m_remote_ip_addr("0.0.0.0"), m_key_str("_invalid_key_") {}
-  ~SocketData() { if (NULL != m_buffer) delete [] m_buffer; }
+  ~SocketData() { if (nullptr != m_buffer) delete [] m_buffer; }
 
   tcp::socket &GetSocket() { return m_socket; }
   char *GetBuffer() { return m_buffer; }
@@ -30,7 +30,7 @@ class SocketData
     if (0 >= size)
       return false;
 
-    if (NULL != m_buffer)
+    if (nullptr != m_buffer)
       delete [] m_buffer;
 		m_buffer = new char[size];
 		m_buffer_size = size;

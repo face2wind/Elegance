@@ -4,7 +4,7 @@
 namespace face2wind
 {
 
-IRpcRequest::IRpcRequest() : m_data(NULL), m_data_length(0)
+IRpcRequest::IRpcRequest() : m_data(nullptr), m_data_length(0)
 {
 
 }
@@ -21,37 +21,122 @@ IRpcRequest::~IRpcRequest()
 
 void IRpcRequest::SetData(const char * data, int length)
 {
-	if (NULL == data || length <= 0 || length > RPC_MAX_DATA_LENGTH)
+	if (nullptr == data || length <= 0 || length > RPC_MAX_DATA_LENGTH)
 		return;
 
-	if (NULL != m_data && m_data_length > 0)
+	std::cout << "11111ssss11111" << std::endl;
+	if (nullptr != m_data && m_data_length > 0)
 		delete [] m_data;
 
 	m_data = new char[length];
 	m_data_length = length;
 
+	std::cout << "1111111jjjjj111" << m_data_length<<std::endl;
 	memcpy(m_data, data, m_data_length);
+	std::cout << "111ggggg1111111" << std::endl;
 }
 
 void RPCSession::OnRecv(const char *data, int length)
 {
+	if (nullptr == data || length <= sizeof(RPCMessageHeader))
+		return;
 
+	RPCMessageHeader *head = (RPCMessageHeader *)data;
+	if (RPC_MESSAGE_TYPE_RESPONSE == head->type)
+	{
+		std::map<int, IRpcRequest*>::iterator request_it = m_request_list.find(head->message_id);
+		if (request_it != m_request_list.end())
+		{
+			IRpcRequest *request = request_it->second;
+			if (NULL != request)
+				request->OnCallBack(data + sizeof(RPCMessageHeader), length - sizeof(RPCMessageHeader));
+
+			m_request_list.erase(request_it);
+		}
+	}
+	else if (RPC_MESSAGE_TYPE_REQUEST == head->type)
+	{
+		for (std::set<IRpcHandler*>::iterator it = m_handler_list.begin(); it != m_handler_list.end(); ++it)
+		{
+			int result_data_len(0);
+			char *result_data = m_message_buffer + sizeof(RPCMessageHeader);
+			
+			if ((*it)->HandleCall(data, length, result_data, result_data_len) != 0)
+				continue;
+
+			if (NULL == result_data || result_data_len <= 0)
+				continue;
+
+			int total_send_len = result_data_len + sizeof(RPCMessageHeader);
+			if (total_send_len >= RPC_SESSION_NETWORK_MESSAGE_MAX_LEN)
+				continue;
+
+			RPCMessageHeader *receive_head = (RPCMessageHeader *)data;
+
+			m_send_message_lock.lock();
+
+			RPCMessageHeader *send_head = (RPCMessageHeader *)m_message_buffer;
+			send_head->type = RPC_MESSAGE_TYPE_RESPONSE;
+			send_head->message_id = receive_head->message_id;
+			//memcpy(m_message_buffer + sizeof(RPCMessageHeader), result_data, result_data_len);
+
+			m_network->AsyncSendData(m_network_id, m_message_buffer, total_send_len);
+
+			m_send_message_lock.unlock();
+		}
+	}
+}
+
+void RPCSession::RegisterHandler(IRpcHandler * handler)
+{
+	if (nullptr != handler && m_handler_list.find(handler) != m_handler_list.end())
+	{
+		m_handler_list.insert(handler);
+	}
 }
 
 void RPCSession::AsyncCall(IRpcRequest *req)
 {
+	if (nullptr == req || nullptr == req->m_data || req->m_data_length <= 0)
+		return;
 
+	std::cout << "1111111111" << std::endl;
+	int total_len = req->m_data_length + sizeof(RPCMessageHeader);
+	if (total_len >= RPC_SESSION_NETWORK_MESSAGE_MAX_LEN)
+		return;
+
+	int request_id = this->GetRequestID();
+
+	std::cout << "222222222" << std::endl;
+	m_send_message_lock.lock();
+
+	RPCMessageHeader *head = (RPCMessageHeader *)m_message_buffer;
+	head->type = RPC_MESSAGE_TYPE_REQUEST;
+	head->message_id = request_id;
+	memcpy(m_message_buffer + sizeof(RPCMessageHeader), req->m_data, req->m_data_length);
+
+	std::cout << "3333333333" << std::endl;
+	if (m_network->AsyncSendData(m_network_id, m_message_buffer, total_len))
+		m_request_list[request_id] = req;
+
+	m_send_message_lock.unlock();
+	std::cout << "4444444444" << std::endl;
 }
 
-const char * RPCSession::SyncCall(char * data, int length, int & return_length)
+const char * RPCSession::SyncCall(const char * data, int length, int & return_length)
 {
 	return nullptr;
 }
 
-RPCManager::RPCManager(IRpcHandler *handler) : m_handler(handler), m_network(NULL)
+int RPCSession::GetRequestID()
+{
+	return 0;
+}
+
+RPCManager::RPCManager(IRpcConnectHandler *handler) : m_handler(handler), m_network(nullptr)
 {
 	m_network = Network::GetInstance();
-	if (NULL != m_network)
+	if (nullptr != m_network)
 		m_network->AsyncRun();
 	m_network->RegistHandler(this);
 }
@@ -86,13 +171,13 @@ void RPCManager::OnActiveNetwork(bool is_success, NetworkID network_id, Port lis
 	std::string session_id = CalculateRPCSessionKey(listen_port, remote_ip_addr, remote_port);
 	if (m_session_map.find(session_id) != m_session_map.end())
 	{
-		m_session_map[session_id] = RPCSession(remote_ip_addr, remote_port);
+		m_session_map[session_id].SetData(remote_ip_addr, remote_port, m_network, network_id);
 	}
 
 	m_session_id_2_network_id_map[session_id] = network_id;
 	m_network_id_2_session_id_map[network_id] = session_id;
 
-	if (NULL != m_handler)
+	if (nullptr != m_handler)
 		m_handler->OnSessionActive(&m_session_map[session_id]);
 }
 

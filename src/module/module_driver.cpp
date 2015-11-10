@@ -129,7 +129,7 @@ void ModuleDriver::OnProgramExitThread()
 
 bool ModuleDriver::RegisterModule(const std::string name, IModule* module)
 {
-  if (NULL == module)
+  if (nullptr == module)
   {
     return false;
   }

@@ -27,7 +27,7 @@ class Network
 {
   struct MessageBuffer
   {
-    MessageBuffer() : m_buffer(NULL), m_buffer_size(0) {}
+    MessageBuffer() : m_buffer(nullptr), m_buffer_size(0) {}
     ~MessageBuffer()
     {
       this->ChangeBufferSize(0);
@@ -50,7 +50,7 @@ class Network
     bool ChangeBufferSize(int size)
     {
       m_buffer_size = size;
-      if (NULL != m_buffer) delete[] m_buffer;
+      if (nullptr != m_buffer) delete[] m_buffer;
       if (size > 0)
       {
         m_buffer = new char[size];
