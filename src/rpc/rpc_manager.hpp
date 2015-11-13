@@ -54,12 +54,18 @@ struct RPCMessageCheckKeyResponseSC
 class IRpcRequest
 {
  public:
+  IRpcRequest() {}
+  virtual ~IRpcRequest() {}
+  
   virtual void OnCallBack(const char *data, int length) = 0;
 };
 
 class IRpcHandler
 {
  public:
+  IRpcHandler() {}
+  virtual ~IRpcHandler() {}
+  
   virtual int HandleCall(const char *data, int length, char *return_data, int &return_length) = 0;
 };
 
