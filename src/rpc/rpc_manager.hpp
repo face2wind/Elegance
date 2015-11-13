@@ -54,18 +54,7 @@ struct RPCMessageCheckKeyResponseSC
 class IRpcRequest
 {
  public:
-  IRpcRequest();
-  IRpcRequest(const char *data, int length);
-  ~IRpcRequest();
-  
-  void SetData(const char *data, int length);
-  
   virtual void OnCallBack(const char *data, int length) = 0;
-
-  friend class RPCSession;
- private:
-  char *m_data;
-  int m_data_length;
 };
 
 class IRpcHandler
@@ -91,7 +80,7 @@ class RPCSession
 
   void RegisterHandler(IRpcHandler *handler);
 
-  void AsyncCall(IRpcRequest *req);
+  void AsyncCall(IRpcRequest *req, const char *data, int length);
   const char * SyncCall(const char *data, int length, int &return_length);
 
   friend class RPCManager;

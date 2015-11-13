@@ -4,36 +4,6 @@
 namespace face2wind
 {
 
-IRpcRequest::IRpcRequest() : m_data(nullptr), m_data_length(0)
-{
-
-}
-
-IRpcRequest::IRpcRequest(const char *data, int length) : IRpcRequest()
-{
-  this->SetData(data, length);
-}
-
-IRpcRequest::~IRpcRequest()
-{
-
-}
-
-void IRpcRequest::SetData(const char * data, int length)
-{
-  if (nullptr == data || length <= 0 || length > RPC_MAX_DATA_LENGTH)
-    return;
-
-  if (nullptr != m_data && m_data_length > 0)
-    delete [] m_data;
-
-  m_data_length = length;
-  m_data = new char[m_data_length];
-  memset(m_data, 0, m_data_length);
-
-  memcpy(m_data, data, m_data_length);
-}
-
 void RPCSession::OnRecv(const char *data, int length)
 {
   if (nullptr == data || length <= sizeof(RPCMessageHeader))
@@ -43,11 +13,14 @@ void RPCSession::OnRecv(const char *data, int length)
   if (RPC_MESSAGE_TYPE_RESPONSE == head->type)
   {
     std::map<int, IRpcRequest*>::iterator request_it = m_request_list.find(head->message_id);
-    if (request_it != m_request_list.end())
-    {
-      IRpcRequest *request = request_it->second;
-      if (NULL != request)
-        request->OnCallBack(data + sizeof(RPCMessageHeader), length - sizeof(RPCMessageHeader));
+		if (request_it != m_request_list.end())
+		{
+			IRpcRequest *request = request_it->second;
+			if (NULL != request)
+			{
+				request->OnCallBack(data + sizeof(RPCMessageHeader), length - sizeof(RPCMessageHeader));
+				delete request;
+			}
 
       m_request_list.erase(request_it);
     }
@@ -93,14 +66,23 @@ void RPCSession::RegisterHandler(IRpcHandler * handler)
   }
 }
 
-void RPCSession::AsyncCall(IRpcRequest *req)
+void RPCSession::AsyncCall(IRpcRequest *req, const char *data, int length)
 {
-  if (nullptr == req || nullptr == req->m_data || req->m_data_length <= 0)
-    return;
+  if (nullptr == req)
+		return;
 
-  int total_len = req->m_data_length + sizeof(RPCMessageHeader);
-  if (total_len >= RPC_SESSION_NETWORK_MESSAGE_MAX_LEN)
-    return;
+	if (nullptr == data || length <= 0)
+	{
+		delete req;
+		return;
+	}
+
+  int total_len = length + sizeof(RPCMessageHeader);
+	if (total_len >= RPC_SESSION_NETWORK_MESSAGE_MAX_LEN)
+	{
+		delete req;
+		return;
+	}
 
   int request_id = this->GetRequestID();
 
@@ -109,7 +91,7 @@ void RPCSession::AsyncCall(IRpcRequest *req)
   RPCMessageHeader *head = (RPCMessageHeader *)m_message_buffer;
   head->type = RPC_MESSAGE_TYPE_REQUEST;
   head->message_id = request_id;
-  memcpy(m_message_buffer + sizeof(RPCMessageHeader), req->m_data, req->m_data_length);
+  memcpy(m_message_buffer + sizeof(RPCMessageHeader), data, length);
 
   if (m_network->AsyncSendData(m_network_id, m_message_buffer, total_len))
     m_request_list[request_id] = req;
@@ -237,7 +219,7 @@ void RPCManager::OnRecv(NetworkID network_id, const char *data, int length)
     RPCMessageCheckKeyCS *check_key_cs = (RPCMessageCheckKeyCS*)data;
     std::string receive_key(check_key_cs->key_str);
 
-		std::cout << "receive key check : "<< receive_key <<" == " << m_network_id_2_key_map[network_id] << std::endl;
+		//std::cout << "receive key check : "<< receive_key <<" == " << m_network_id_2_key_map[network_id] << std::endl;
     if (receive_key == m_network_id_2_key_map[network_id]) // key match
     {
       static RPCMessageCheckKeyResponseSC check_key_response;
@@ -257,7 +239,7 @@ void RPCManager::OnRecv(NetworkID network_id, const char *data, int length)
   else  if (RPC_MESSAGE_TYPE_CHECK_KEY_RESPONSE == *rpc_message_type)
   {
     RPCMessageCheckKeyResponseSC *respon_sc = (RPCMessageCheckKeyResponseSC*)data;
-		std::cout << "receive key check result : " << respon_sc->response << std::endl;
+		//std::cout << "receive key check result : " << respon_sc->response << std::endl;
     if (1 == respon_sc->response)
     {
       UncheckRPCInfo &uncheck_info = m_uncheck_rpc_info_map[network_id];
