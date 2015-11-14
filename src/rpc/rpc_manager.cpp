@@ -80,6 +80,10 @@ void RPCSession::AsyncCall(IRpcRequest *req, const char *data, int length)
   int total_len = length + sizeof(RPCMessageHeader);
 	if (total_len >= RPC_SESSION_NETWORK_MESSAGE_MAX_LEN)
 	{
+		std::stringstream ss;
+		ss << "RPCSession::AsyncCall, total data length is more than "<< RPC_SESSION_NETWORK_MESSAGE_MAX_LEN << ", request give up.";
+		DebugMessage::GetInstance()->ShowMessage(DebugMessageType::DEBUG_MESSAGE_TYPE_BASE_NETWORK, ss.str());
+
 		delete req;
 		return;
 	}

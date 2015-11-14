@@ -11,7 +11,7 @@
 namespace face2wind
 {
 
-const static int RPC_MAX_DATA_LENGTH = 2048;
+static const int RPC_SESSION_NETWORK_MESSAGE_MAX_LEN = 10240;
 const static int RPC_MAX_KEY_STRING_LENGTH = 99;
 
 class Network;
@@ -62,8 +62,6 @@ class IRpcHandler
  public:
   virtual int HandleCall(const char *data, int length, char *return_data, int &return_length) = 0;
 };
-
-static const int RPC_SESSION_NETWORK_MESSAGE_MAX_LEN = 2048;
 
 class RPCSession
 {
