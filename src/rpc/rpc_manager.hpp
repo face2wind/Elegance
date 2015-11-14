@@ -168,6 +168,7 @@ class RPCManager : public INetworkHandler
   std::map<int, std::string> m_listen_port_2_key_map;
   std::map<int, std::string> m_network_id_2_key_map;
 };
-};
+
+}
 
 #endif
