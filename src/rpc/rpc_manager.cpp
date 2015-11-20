@@ -23,6 +23,7 @@ void RPCSession::OnRecv(const char *data, int length)
       }
 
       m_request_list.erase(request_it);
+			m_free_request_id_stack.push(head->message_id);
     }
   }
   else if (RPC_MESSAGE_TYPE_REQUEST == head->type)
@@ -110,7 +111,19 @@ const char * RPCSession::SyncCall(const char * data, int length, int & return_le
 
 int RPCSession::GetRequestID()
 {
-  return 0;
+	int new_request_id(0);
+
+	if (m_free_request_id_stack.empty())
+	{
+		new_request_id = m_max_request_id ++;
+	}
+	else
+	{
+		new_request_id = m_free_request_id_stack.top();
+		m_free_request_id_stack.pop();
+	}
+
+  return new_request_id;
 }
 
 RPCManager::RPCManager(IRpcConnectHandler *handler) : m_handler(handler), m_network(nullptr)
@@ -163,10 +176,14 @@ void RPCManager::OnActiveNetwork(NetworkID network_id, Port listen_port, IPAddr 
 
 void RPCManager::OnConnect(bool is_success, NetworkID network_id, Port local_port, IPAddr remote_ip_addr, Port remote_port)
 {
-  if (!is_success)
-    return;
-  
-  std::string uncheck_key = CalculateRPCSessionKey(0, remote_ip_addr, remote_port);
+	if (!is_success)
+	{
+		if (nullptr != m_handler)
+			m_handler->OnConnectFail(remote_ip_addr, remote_port);
+		return;
+	}
+
+	std::string uncheck_key = CalculateRPCSessionKey(0, remote_ip_addr, remote_port);
   if (m_uncheck_key_map.find(uncheck_key) != m_uncheck_key_map.end())
   {
     std::string rpc_key = m_uncheck_key_map[uncheck_key];
@@ -195,8 +212,12 @@ void RPCManager::OnConnect(bool is_success, NetworkID network_id, Port local_por
 
 void RPCManager::OnAccept(bool is_success, NetworkID network_id, Port listen_port, IPAddr remote_ip_addr, Port remote_port)
 {
-  if (!is_success)
-    return;
+	if (!is_success)
+	{
+		if (nullptr != m_handler)
+			m_handler->OnListenFail(listen_port);
+		return;
+	}
   
   if (m_listen_port_2_key_map.find(listen_port) != m_listen_port_2_key_map.end())
   {

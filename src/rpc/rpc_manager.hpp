@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <set>
+#include <stack>
 #include <boost/thread/mutex.hpp>
 
 #include "network/i_network.hpp"
@@ -72,9 +73,9 @@ class IRpcHandler
 class RPCSession
 {
  public:
-  RPCSession() : m_remote_ip(""), m_remote_port(0), m_network(nullptr), m_network_id(0), m_cur_has_connected(false) {}
+  RPCSession() : m_remote_ip(""), m_remote_port(0), m_network(nullptr), m_network_id(0), m_cur_has_connected(false), m_max_request_id(0) {}
   RPCSession(const IPAddr &remote_ip, Port remote_port, Network *network, NetworkID network_id)
-      : m_remote_ip(remote_ip), m_remote_port(remote_port), m_network(network), m_network_id(network_id), m_cur_has_connected(false) {}
+      : m_remote_ip(remote_ip), m_remote_port(remote_port), m_network(network), m_network_id(network_id), m_cur_has_connected(false), m_max_request_id(0) {}
   virtual ~RPCSession() {}
 
   const IPAddr &GetRemoteIp() { return m_remote_ip; }
@@ -111,13 +112,19 @@ class RPCSession
 	
   std::set<IRpcHandler*> m_handler_list;
   std::map<int, IRpcRequest*> m_request_list;
+
   boost::mutex m_send_message_lock;
 
+	int m_max_request_id;
+	std::stack<int> m_free_request_id_stack;
 };
 
 class IRpcConnectHandler
 {
  public:
+	 virtual void OnListenFail(Port listen_port) = 0;
+	 virtual void OnConnectFail(IPAddr remote_ip_addr, Port remote_port) = 0;
+
   virtual void OnSessionActive(RPCSession *session) = 0;
   virtual void OnSessionInactive(RPCSession *session) = 0;
 };

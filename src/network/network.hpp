@@ -69,7 +69,6 @@ class Network
   friend class AcceptSession;
   friend class ConnectSession;
 
-	Network();
   virtual ~Network();
   static Network *GetInstance();
 
@@ -85,6 +84,7 @@ class Network
 	virtual void Stop();
 
 protected:
+	Network();
 
 	virtual void OnAccept(SocketPtr socket_ptr, bool is_success);
 	virtual void OnConnect(SocketPtr socket_ptr, bool is_success);
