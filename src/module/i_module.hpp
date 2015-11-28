@@ -5,63 +5,63 @@
 
 namespace face2wind
 {
-	class IModule
-	{
-		friend class ModuleDriver;
+class IModule
+{
+  friend class ModuleDriver;
 
-	public:
-		enum
-		{
-			Succeed = 0,
-			Fail,
-			Pending,
-		};
-		enum State
-		{
-			ST_Created,
-			ST_Inited,
-			ST_Started,
-			ST_Running,
-			ST_Stoped,
-			ST_Released,
+ public:
+  enum
+  {
+    Succeed = 0,
+    Fail,
+    Pending,
+  };
+  enum State
+  {
+    ST_Created,
+    ST_Inited,
+    ST_Started,
+    ST_Running,
+    ST_Stoped,
+    ST_Released,
 
-			ST_Invalid,
-		};
+    ST_Invalid,
+  };
 
-		IModule() : m_module_state(ST_Created) {}
-		virtual ~IModule(){}
+  IModule() : m_module_state(ST_Created) {}
+  virtual ~IModule(){}
 
-		/*
-		 * ³õÊ¼»¯Êı¾İ£¬¶ÁÈ¡
-		 */
-		virtual int Init() = 0;
+  /*
+   * åˆå§‹åŒ–æ•°æ®ï¼Œè¯»å–
+   */
+  virtual int Init() = 0;
 
-		/*
-		 * ¿ªÊ¼ÔËĞĞ
-		 */
-		virtual int Start() = 0;
+  /*
+   * å¼€å§‹è¿è¡Œ
+   */
+  virtual int Start() = 0;
 
-		/*
-		 * Ã¿Ö¡µ÷ÓÃÒ»´Î
-		 */
-		virtual int Update() = 0;
+  /*
+   * æ¯å¸§è°ƒç”¨ä¸€æ¬¡
+   */
+  virtual int Update() = 0;
 
-		/*
-		 * Í£Ö¹ÔËĞĞ
-		 */
-		virtual int Stop() = 0;
+  /*
+   * åœæ­¢è¿è¡Œ
+   */
+  virtual int Stop() = 0;
 
-		/*
-		 * ÊÍ·Åµ±Ç°Êı¾İ£¬³Ö¾Ã´æ´¢
-		 */
-		virtual int Release() = 0;
+  /*
+   * é‡Šæ”¾å½“å‰æ•°æ®ï¼ŒæŒä¹…å­˜å‚¨
+   */
+  virtual int Release() = 0;
 
-		int GetState() const { return m_module_state;}
+  int GetState() const { return m_module_state;}
 
-	private:
-		State m_module_state;
+ private:
+  State m_module_state;
 
-	};
+};
 }
 
 #endif
