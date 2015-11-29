@@ -10,6 +10,7 @@ using google::protobuf::MessageFactory;
 
 ProtobuffNetwork::ProtobuffNetwork()
 {
+  Network::GetInstance()->RegistHandler(this);
 }
 
 ProtobuffNetwork::~ProtobuffNetwork()
