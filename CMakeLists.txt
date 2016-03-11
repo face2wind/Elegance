@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
-project(elegance)
+project(Elegance)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -ggdb -O0 -lboost_system -lprotobuf -lpthread -Wall -Werror")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -ggdb -O0 -lpthread -Wall -Werror")
 
 file(GLOB_RECURSE SOURCE_FILES ./src/*.cpp)
 
@@ -9,9 +9,10 @@ include_directories(
   ./src
   )
 
-SET_TARGET_PROPERTIES(Elegance_share PROPERTIES OUTPUT_NAME "elegance" VERSION 1.2 SOVERSION 1)
-SET_TARGET_PROPERTIES(Elegance_static PROPERTIES OUTPUT_NAME "elegance" VERSION 1.2 SOVERSION 1)
+ADD_LIBRARY(Elegance_share SHARED ${SOURCE_FILES})
+ADD_LIBRARY(Elegance_static STATIC ${SOURCE_FILES})
 
-target_link_libraries(Elegance_share)
-target_link_libraries(Elegance_static)
+SET_TARGET_PROPERTIES(Elegance_share PROPERTIES OUTPUT_NAME "Elegance" VERSION 1.2 SOVERSION 1)
+SET_TARGET_PROPERTIES(Elegance_static PROPERTIES OUTPUT_NAME "Elegance" VERSION 1.2 SOVERSION 1)
+
 
