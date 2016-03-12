@@ -8,6 +8,8 @@ namespace face2wind {
 #ifdef __LINUX__
 
 #include <pthread.h>
+#include <signal.h>
+
 typedef pthread_t ThreadID;
 typedef void* ThreadReturn;
 
@@ -28,8 +30,8 @@ class Thread
 
   struct ThreadParam
   {
-	  Func func;
-	  void *param;
+    Func func;
+    void *param;
   };
   
  public:
@@ -40,14 +42,14 @@ class Thread
 
   bool Join();
   bool Terminate();
-  void Detach();
+  bool Detach();
   
   ThreadID GetThreadID() const;
   ThreadID GetCurrentThreadID() const;
 
-private:
+ private:
 #ifdef __LINUX__
-	static ThreadReturn StartRoutine(void *param);
+  static ThreadReturn StartRoutine(void *param);
 #endif
 
 #ifdef __WINDOWS__

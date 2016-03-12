@@ -9,7 +9,7 @@
 #define __WINDOWS__ 2
 #endif
 
-#ifndef __CYGWIN__
+#ifdef __CYGWIN__
 #define __WINDOWS__ 2
 #endif
 
