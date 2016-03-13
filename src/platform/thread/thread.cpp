@@ -1,4 +1,4 @@
-#include "thread.hpp"
+#include <platform/thread/thread.hpp>
 
 namespace face2wind {
 
@@ -23,7 +23,7 @@ bool Thread::Run(Func func, void *param, unsigned int stack_size)
   pthread_attr_init(&attr);
   pthread_attr_setstacksize(&attr, stack_size);
   
-  int ret = pthread_create(&m_thread_id, &attr, &Thread::StartRoutine, thread_p);
+  int ret = pthread_create(&thread_id_, &attr, &Thread::StartRoutine, thread_p);
   pthread_attr_destroy(&attr);
 
   return (0 == ret);
@@ -31,42 +31,42 @@ bool Thread::Run(Func func, void *param, unsigned int stack_size)
 
 bool Thread::Join()
 {
-  if (0 == m_thread_id)
+  if (0 == thread_id_)
     return false;
 
-  int ret = pthread_join(m_thread_id, NULL);
+  int ret = pthread_join(thread_id_, NULL);
   if (0 == ret)
-    m_thread_id = 0;
+    thread_id_ = 0;
 
   return 0 == ret;
 }
 
 bool Thread::Terminate()
 {
-  if (0 == m_thread_id)
+  if (0 == thread_id_)
     return false;
 
-  int ret = pthread_kill(m_thread_id, SIGKILL);
+  int ret = pthread_kill(thread_id_, SIGKILL);
   if (0 == ret)
-    m_thread_id = 0;
+    thread_id_ = 0;
   
   return 0 == ret;
 }
 
 bool Thread::Detach()
 {
-  if (0 == m_thread_id)
+  if (0 == thread_id_)
     return false;
 
-  int ret = pthread_detach(m_thread_id);
-  m_thread_id = 0;
+  int ret = pthread_detach(thread_id_);
+  thread_id_ = 0;
 
   return 0 == ret;
 }
 
 ThreadID Thread::GetThreadID() const
 {
-  return m_thread_id;
+  return thread_id_;
 }
 
 ThreadID Thread::GetCurrentThreadID() const
@@ -90,7 +90,7 @@ ThreadReturn Thread::StartRoutine(void *param)
 
 #ifdef __WINDOWS__
 
-Thread::Thread() : m_thread_id(0), m_thread_handle(NULL)
+Thread::Thread() : thread_id_(0), thread_handle_(NULL)
 {
 }
 
@@ -101,15 +101,15 @@ Thread::~Thread()
 
 bool Thread::Run(Func func, void *param, unsigned int stack_size)
 {
-  if (NULL != m_thread_handle)
+  if (NULL != thread_handle_)
     return false;
 
   ThreadParam *thread_p = new ThreadParam();
   thread_p->func = func;
   thread_p->param = param;
 
-  m_thread_handle = CreateThread(NULL, stack_size, &Thread::StartRoutine, thread_p, 0, &m_thread_id);
-  if (NULL == m_thread_handle)
+  thread_handle_ = CreateThread(NULL, stack_size, &Thread::StartRoutine, thread_p, 0, &thread_id_);
+  if (NULL == thread_handle_)
     return false;
 
   return true;
@@ -117,11 +117,11 @@ bool Thread::Run(Func func, void *param, unsigned int stack_size)
 
 bool Thread::Join()
 {
-  if (WaitForSingleObject(m_thread_handle, INFINITE) == WAIT_OBJECT_0)
+  if (WaitForSingleObject(thread_handle_, INFINITE) == WAIT_OBJECT_0)
   {
-    CloseHandle(m_thread_handle);
-    m_thread_handle = NULL;
-    m_thread_id = 0;
+    CloseHandle(thread_handle_);
+    thread_handle_ = NULL;
+    thread_id_ = 0;
     return true;
   }
   else
@@ -132,27 +132,27 @@ bool Thread::Join()
 
 bool Thread::Terminate()
 {
-  bool ret = (0 != TerminateThread(m_thread_handle, 0));
-  m_thread_handle = NULL;
-  m_thread_id = 0;
+  bool ret = (0 != TerminateThread(thread_handle_, 0));
+  thread_handle_ = NULL;
+  thread_id_ = 0;
   return ret;
 }
 
 bool Thread::Detach()
 {
-  if (NULL == m_thread_handle)
+  if (NULL == thread_handle_)
     return false;
 
-  bool ret = CloseHandle(m_thread_handle);
-  m_thread_handle = NULL;
-  m_thread_id = 0;
+  bool ret = CloseHandle(thread_handle_);
+  thread_handle_ = NULL;
+  thread_id_ = 0;
   
   return ret;
 }
 
 ThreadID Thread::GetThreadID() const
 {
-  return m_thread_id;
+  return thread_id_;
 }
 
 ThreadID Thread::GetCurrentThreadID() const

@@ -1,7 +1,7 @@
 #ifndef __THREAD_HPP__
 #define __THREAD_HPP__
 
-#include "platform_def.hpp"
+#include <platform/platform_def.hpp>
 
 namespace face2wind {
 
@@ -58,10 +58,10 @@ class Thread
   
   
  private:
-  ThreadID m_thread_id;
+  ThreadID thread_id_;
 
 #ifdef __WINDOWS__
-  HANDLE m_thread_handle;
+  HANDLE thread_handle_;
 #endif
 };
 
