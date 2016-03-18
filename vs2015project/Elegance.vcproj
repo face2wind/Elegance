@@ -149,21 +149,73 @@
 				RelativePath="..\src\elegance.hpp"
 				>
 			</File>
-			<File
-				RelativePath="..\src\platform_def.hpp"
-				>
-			</File>
 			<Filter
-				Name="thread"
+				Name="common"
 				>
 				<File
-					RelativePath="..\src\thread\thread.cpp"
+					RelativePath="..\src\common\random.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\src\thread\thread.hpp"
+					RelativePath="..\src\common\random.hpp"
 					>
 				</File>
+			</Filter>
+			<Filter
+				Name="platform"
+				>
+				<File
+					RelativePath="..\src\platform\platform_def.hpp"
+					>
+				</File>
+				<Filter
+					Name="thread"
+					>
+					<File
+						RelativePath="..\src\platform\thread\mutex.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\src\platform\thread\mutex.hpp"
+						>
+					</File>
+					<File
+						RelativePath="..\src\platform\thread\thread.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\src\platform\thread\thread.hpp"
+						>
+					</File>
+					<File
+						RelativePath="..\src\platform\thread\thread_pool.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\src\platform\thread\thread_pool.hpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="common"
+					>
+					<File
+						RelativePath="..\src\platform\common\system_info.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\src\platform\common\system_info.hpp"
+						>
+					</File>
+					<File
+						RelativePath="..\src\platform\common\timer.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\src\platform\common\timer.hpp"
+						>
+					</File>
+				</Filter>
 			</Filter>
 		</Filter>
 	</Files>

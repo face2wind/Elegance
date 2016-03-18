@@ -4,26 +4,22 @@ namespace face2wind {
 
 #ifdef __LINUX__
 
-Thread::Thread()
+Thread::Thread() : thread_id_(0)
 {
 }
 
 Thread::~Thread()
 {
-
+  this->Detach();  
 }
 
-bool Thread::Run(Func func, void *param, unsigned int stack_size)
+bool Thread::Run(ThreadTask *func, unsigned int stack_size)
 {
-  ThreadParam *thread_p = new ThreadParam();
-  thread_p->func = func;
-  thread_p->param = param;
-
   pthread_attr_t attr;
   pthread_attr_init(&attr);
   pthread_attr_setstacksize(&attr, stack_size);
   
-  int ret = pthread_create(&thread_id_, &attr, &Thread::StartRoutine, thread_p);
+  int ret = pthread_create(&thread_id_, &attr, &Thread::StartRoutine, func);
   pthread_attr_destroy(&attr);
 
   return (0 == ret);
@@ -69,21 +65,21 @@ ThreadID Thread::GetThreadID() const
   return thread_id_;
 }
 
-ThreadID Thread::GetCurrentThreadID() const
+ThreadID Thread::GetCurrentThreadID()
 {
   return pthread_self();
 }
 
 ThreadReturn Thread::StartRoutine(void *param)
 {
-  ThreadParam *thread_p = (ThreadParam*)param;
-  if (NULL == thread_p)
+  ThreadTask *thread_f = (ThreadTask*)param;
+  if (NULL == thread_f)
     return 0;
 
-  ThreadReturn ret = thread_p->func(thread_p->param);
+  thread_f->Run();
 
-  delete thread_p;
-  return ret;
+  delete thread_f;
+  return static_cast<ThreadReturn>(0);
 }
 
 #endif
@@ -99,16 +95,12 @@ Thread::~Thread()
   this->Detach();
 }
 
-bool Thread::Run(Func func, void *param, unsigned int stack_size)
+bool Thread::Run(ThreadTask *func, unsigned int stack_size)
 {
   if (NULL != thread_handle_)
     return false;
 
-  ThreadParam *thread_p = new ThreadParam();
-  thread_p->func = func;
-  thread_p->param = param;
-
-  thread_handle_ = CreateThread(NULL, stack_size, &Thread::StartRoutine, thread_p, 0, &thread_id_);
+  thread_handle_ = CreateThread(NULL, stack_size, &Thread::StartRoutine, func, 0, &thread_id_);
   if (NULL == thread_handle_)
     return false;
 
@@ -132,10 +124,11 @@ bool Thread::Join()
 
 bool Thread::Terminate()
 {
-  bool ret = (0 != TerminateThread(thread_handle_, 0));
+  BOOL ret = (0 != TerminateThread(thread_handle_, 0));
   thread_handle_ = NULL;
   thread_id_ = 0;
-  return ret;
+
+  return (0 != ret);
 }
 
 bool Thread::Detach()
@@ -143,11 +136,11 @@ bool Thread::Detach()
   if (NULL == thread_handle_)
     return false;
 
-  bool ret = CloseHandle(thread_handle_);
+  BOOL ret = CloseHandle(thread_handle_);
   thread_handle_ = NULL;
   thread_id_ = 0;
   
-  return ret;
+  return (0 != ret);
 }
 
 ThreadID Thread::GetThreadID() const
@@ -155,21 +148,21 @@ ThreadID Thread::GetThreadID() const
   return thread_id_;
 }
 
-ThreadID Thread::GetCurrentThreadID() const
+ThreadID Thread::GetCurrentThreadID()
 {
   return GetCurrentThreadId();
 }
 
 ThreadReturn CALLBACK Thread::StartRoutine(void *param)
 {
-  ThreadParam *thread_p = (ThreadParam*)param;
-  if (NULL == thread_p)
+  ThreadTask *thread_f = (ThreadTask*)param;
+  if (NULL == thread_f)
     return 0;
 
-  ThreadReturn ret = thread_p->func(thread_p->param);
+  thread_f->Run();
 
-  delete thread_p;
-  return ret;
+  delete thread_f;
+  return static_cast<ThreadReturn>(0);
 }
 
 #endif

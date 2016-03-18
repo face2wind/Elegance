@@ -1,5 +1,4 @@
-#ifndef __THREAD_HPP__
-#define __THREAD_HPP__
+#pragma once
 
 #include <platform/platform_def.hpp>
 
@@ -23,29 +22,34 @@ typedef DWORD ThreadReturn;
 
 #endif
 
-class Thread
+class ThreadTask
 {
  public:
-  typedef ThreadReturn (*Func)(void *);
+  ThreadTask() {}
+  virtual ~ThreadTask() {}
 
-  struct ThreadParam
-  {
-    Func func;
-    void *param;
-  };
+  void SetParam(void *param) { param_ = param; }
   
+  virtual void Run() = 0;
+
+ protected:
+  void *param_;
+};
+
+class Thread
+{
  public:
   Thread();
   ~Thread();
 
-  bool Run(Func func, void *param, unsigned int stack_size = 0);
+  bool Run(ThreadTask *func, unsigned int stack_size = 0);
 
   bool Join();
   bool Terminate();
   bool Detach();
   
   ThreadID GetThreadID() const;
-  ThreadID GetCurrentThreadID() const;
+  static ThreadID GetCurrentThreadID();
 
  private:
 #ifdef __LINUX__
@@ -67,4 +71,3 @@ class Thread
 
 }
 
-#endif

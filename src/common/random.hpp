@@ -1,5 +1,4 @@
-#ifndef __RANDOM_HPP__
-#define __RANDOM_HPP__
+#pragma once
 
 namespace face2wind {
 
@@ -15,4 +14,3 @@ class Random
 
 }
 
-#endif

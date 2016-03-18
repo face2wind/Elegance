@@ -1,5 +1,4 @@
-#ifndef __MUTEX_HPP__
-#define __MUTEX_HPP__
+#pragma once
 
 #include <platform/platform_def.hpp>
 
@@ -8,16 +7,25 @@
 #endif
 
 #ifdef __WINDOWS__
+
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x601  // for TryEnterCriticalSection compile
+#endif
+
 #include <windows.h>
 #endif
 
 namespace face2wind {
+
+class ThreadPool;
 
 class Mutex
 {
  public:
   Mutex();
   ~Mutex();
+
+  friend class ThreadPool;
 
   bool Lock();
   bool TryLock();
@@ -35,4 +43,4 @@ class Mutex
 
 }
 
-#endif
+

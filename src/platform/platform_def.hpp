@@ -1,16 +1,15 @@
-#ifndef __PLATFORM_DEF_HPP__
-#define __PLATFORM_DEF_HPP__
+#pragma once
 
 #ifdef __linux__
-#define __LINUX__ 1
+#define __LINUX__
 #endif
 
 #ifdef WIN32
-#define __WINDOWS__ 2
+#define __WINDOWS__
 #endif
 
 #ifdef __CYGWIN__
-#define __WINDOWS__ 2
+#define __WINDOWS__
+//#define __LINUX__
 #endif
 
-#endif

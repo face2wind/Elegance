@@ -1,5 +1,4 @@
-#ifndef __TIMER_HPP__
-#define __TIMER_HPP__
+#pragma once
 
 namespace face2wind {
 
@@ -12,4 +11,3 @@ namespace face2wind {
 
 }
 
-#endif

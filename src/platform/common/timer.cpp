@@ -11,15 +11,16 @@
 
 namespace face2wind {
 
-void Timer::Sleep(unsigned int milliseconds)
-{
-  #ifdef __LINUX__
-  usleep(milliseconds * 1000);
-  #endif
+	void Timer::Sleep(unsigned int milliseconds)
+	{
+#ifdef __LINUX__
+		usleep(milliseconds * 1000);
+#endif
 
-  #ifdef __WINDOWS__
-  Sleep(milliseconds);
-  #endif
-}
+#ifdef __WINDOWS__
+		::Sleep(milliseconds);
+#endif
+	}
+
 
 }
