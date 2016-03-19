@@ -20,6 +20,7 @@ void ThreadPoolWorkingTask::Run()
       break;
 
     task->Run();
+    delete task;
   }
 }
 
@@ -30,8 +31,8 @@ ThreadPool::ThreadPool() : is_running_(false)
 #endif
 
 #ifdef __WINDOWS__
-  handle_list_[0] = CreateEvent(NULL, TRUE, FALSE, TEXT("manual_reset_event"));
-  handle_list_[1] = CreateEvent(NULL, FALSE, FALSE, TEXT("auto_reset_event"));
+  handle_list_[EVENT_TYPE_AUTO_RESET] = CreateEvent(NULL, FALSE, FALSE, TEXT("auto_reset_event"));
+  handle_list_[EVENT_TYPE_MANUAL_RESET] = CreateEvent(NULL, TRUE, FALSE, TEXT("manual_reset_event"));
 #endif
 }
 
@@ -67,17 +68,18 @@ bool ThreadPool::Run(int thread_num)
 
 bool ThreadPool::Stop()
 {
+  mutex_.Lock();
   for (std::list<ThreadTask*>::iterator it = task_list_.begin(); it != task_list_.end(); ++ it)
     delete *it;
   task_list_.clear();
+  mutex_.Unlock();
   
   is_running_ = false;
-  std::cout<<"Stop , pthread_cond_broadcast"<<std::endl;
 #ifdef __LINUX__
   pthread_cond_broadcast(&condition_);
 #endif
 #ifdef __WINDOWS__
-  SetEvent(handle_list_[0]);
+  SetEvent(handle_list_[EVENT_TYPE_MANUAL_RESET]);
 #endif
   
   for (std::set<Thread*>::iterator it = thread_set_.begin(); it != thread_set_.end(); ++ it)
@@ -92,8 +94,8 @@ bool ThreadPool::Stop()
 #endif
 
 #ifdef __WINDOWS__
-  CloseHandle(handle_list_[0]);
-  CloseHandle(handle_list_[1]);
+  CloseHandle(handle_list_[EVENT_TYPE_AUTO_RESET]);
+  CloseHandle(handle_list_[EVENT_TYPE_MANUAL_RESET]);
 #endif
   return true;
 }
@@ -112,7 +114,7 @@ bool ThreadPool::AddTask(ThreadTask *task)
 #endif
   
 #ifdef __WINDOWS__
-  SetEvent(handle_list_[1]);
+  SetEvent(handle_list_[EVENT_TYPE_AUTO_RESET]);
 #endif
   
   mutex_.Unlock();
@@ -133,17 +135,19 @@ ThreadTask * ThreadPool::GetNextTask()
 
 #ifdef __WINDOWS__
   mutex_.Unlock();
-  DWORD wait_result = WaitForMultipleObjects(2, handle_list_, FALSE, INFINITE);
-  switch (wait_result)
+  while (task_list_.empty() && is_running_)
   {
-    case WAIT_OBJECT_0:
-      std::cout<<"handle manual"<<std::endl;
-      //ResetEvent(handle_list_[0]);
-      break;
-    case WAIT_OBJECT_0 + 1:
-      std::cout<<"handle auto"<<std::endl;
-      ResetEvent(handle_list_[1]);
-      break;
+    DWORD wait_result = WaitForMultipleObjects(EVENT_TYPE_MAX, handle_list_, FALSE, INFINITE);
+    switch (wait_result)
+    {
+      case WAIT_OBJECT_0 + EVENT_TYPE_AUTO_RESET:
+        //std::cout<<"handle auto"<<std::endl;
+        break;
+      case WAIT_OBJECT_0 + EVENT_TYPE_MANUAL_RESET:
+        //std::cout<<"handle manual"<<std::endl;
+        ResetEvent(handle_list_[EVENT_TYPE_MANUAL_RESET]);
+        break;
+    }
   }
   mutex_.Lock();
 #endif
