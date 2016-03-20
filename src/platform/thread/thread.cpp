@@ -13,7 +13,7 @@ Thread::~Thread()
   this->Detach();  
 }
 
-bool Thread::Run(ThreadTask *func, unsigned int stack_size)
+bool Thread::Run(IThreadTask *func, unsigned int stack_size)
 {
   pthread_attr_t attr;
   pthread_attr_init(&attr);
@@ -30,7 +30,7 @@ bool Thread::Join()
   if (0 == thread_id_)
     return false;
 
-  int ret = pthread_join(thread_id_, NULL);
+  int ret = pthread_join(thread_id_, nullptr);
   if (0 == ret)
     thread_id_ = 0;
 
@@ -72,7 +72,7 @@ ThreadID Thread::GetCurrentThreadID()
 
 ThreadReturn Thread::StartRoutine(void *param)
 {
-  ThreadTask *thread_f = (ThreadTask*)param;
+  IThreadTask *thread_f = (IThreadTask*)param;
   if (NULL == thread_f)
     return 0;
 
@@ -86,7 +86,7 @@ ThreadReturn Thread::StartRoutine(void *param)
 
 #ifdef __WINDOWS__
 
-Thread::Thread() : thread_id_(0), thread_handle_(NULL)
+Thread::Thread() : thread_id_(0), thread_handle_(nullptr)
 {
 }
 
@@ -97,11 +97,11 @@ Thread::~Thread()
 
 bool Thread::Run(ThreadTask *func, unsigned int stack_size)
 {
-  if (NULL != thread_handle_)
+  if (nullptr != thread_handle_)
     return false;
 
-  thread_handle_ = CreateThread(NULL, stack_size, &Thread::StartRoutine, func, 0, &thread_id_);
-  if (NULL == thread_handle_)
+  thread_handle_ = CreateThread(nullptr, stack_size, &Thread::StartRoutine, func, 0, &thread_id_);
+  if (nullptr == thread_handle_)
     return false;
 
   return true;
@@ -112,7 +112,7 @@ bool Thread::Join()
   if (WaitForSingleObject(thread_handle_, INFINITE) == WAIT_OBJECT_0)
   {
     CloseHandle(thread_handle_);
-    thread_handle_ = NULL;
+    thread_handle_ = nullptr;
     thread_id_ = 0;
     return true;
   }
@@ -125,7 +125,7 @@ bool Thread::Join()
 bool Thread::Terminate()
 {
   BOOL ret = (0 != TerminateThread(thread_handle_, 0));
-  thread_handle_ = NULL;
+  thread_handle_ = nullptr;
   thread_id_ = 0;
 
   return (0 != ret);
@@ -133,11 +133,11 @@ bool Thread::Terminate()
 
 bool Thread::Detach()
 {
-  if (NULL == thread_handle_)
+  if (nullptr == thread_handle_)
     return false;
 
   BOOL ret = CloseHandle(thread_handle_);
-  thread_handle_ = NULL;
+  thread_handle_ = nullptr;
   thread_id_ = 0;
   
   return (0 != ret);
@@ -156,7 +156,7 @@ ThreadID Thread::GetCurrentThreadID()
 ThreadReturn CALLBACK Thread::StartRoutine(void *param)
 {
   ThreadTask *thread_f = (ThreadTask*)param;
-  if (NULL == thread_f)
+  if (nullptr == thread_f)
     return 0;
 
   thread_f->Run();

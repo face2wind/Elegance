@@ -4,10 +4,25 @@
 #include <list>
 #include <platform/thread/thread.hpp>
 #include <platform/thread/mutex.hpp>
+#include <platform/thread/signal.hpp>
 
 namespace face2wind {
 
-class ThreadPoolWorkingTask : public ThreadTask
+class ThreadPool;
+
+class ThreadPoolSignal : public ISignal
+{
+public:
+  ThreadPoolSignal(ThreadPool *pool);
+  ~ThreadPoolSignal();
+  
+  virtual void OnReceive(SignalType type);
+  
+private:
+  ThreadPool *thread_pool_ptr_;
+};
+  
+class ThreadPoolWorkingTask : public IThreadTask
 {
  public:
   virtual void Run();
@@ -24,15 +39,17 @@ class ThreadPool
   bool Run(int thread_num = 0);
   bool Stop();
 
-  bool AddTask(ThreadTask *task);
-  ThreadTask * GetNextTask();
+  bool AddTask(IThreadTask *task);
+  IThreadTask * GetNextTask();
 
  private:
   bool is_running_;
 
   Mutex mutex_;
   std::set<Thread*> thread_set_;
-  std::list<ThreadTask*> task_list_;
+  std::list<IThreadTask*> task_list_;
+  
+  ThreadPoolSignal signal_;
 
 #ifdef __LINUX__
   pthread_cond_t condition_;

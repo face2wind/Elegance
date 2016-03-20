@@ -6,17 +6,33 @@
 //using namespace std;
 
 namespace face2wind {
+  
+  ThreadPoolSignal::ThreadPoolSignal(ThreadPool *pool) : ISignal(SignalType::INTERRUPT)
+  {
+    thread_pool_ptr_ = pool;
+  }
+  
+  ThreadPoolSignal::~ThreadPoolSignal()
+  {
+  }
+  
+  void ThreadPoolSignal::OnReceive(SignalType type)
+  {
+  std::cout<<"ThreadPoolSignal::OnReceive("<<int(type)<<")"<<std::endl;
+    if (nullptr != thread_pool_ptr_)
+      thread_pool_ptr_->Stop();
+  }
 
 void ThreadPoolWorkingTask::Run()
 {
   ThreadPool *pool = (ThreadPool*)param_;
-  if (NULL == pool)
+  if (nullptr == pool)
     return;
 
   while(true)
   {
-    ThreadTask *task = pool->GetNextTask();
-    if (NULL == task)
+    IThreadTask *task = pool->GetNextTask();
+    if (nullptr == task)
       break;
 
     task->Run();
@@ -24,15 +40,15 @@ void ThreadPoolWorkingTask::Run()
   }
 }
 
-ThreadPool::ThreadPool() : is_running_(false)
+ThreadPool::ThreadPool() : is_running_(false), signal_(this)
 {
 #ifdef __LINUX__
-  pthread_cond_init(&condition_, NULL);
+  pthread_cond_init(&condition_, nullptr);
 #endif
 
 #ifdef __WINDOWS__
-  handle_list_[EVENT_TYPE_AUTO_RESET] = CreateEvent(NULL, FALSE, FALSE, TEXT("auto_reset_event"));
-  handle_list_[EVENT_TYPE_MANUAL_RESET] = CreateEvent(NULL, TRUE, FALSE, TEXT("manual_reset_event"));
+  handle_list_[EVENT_TYPE_AUTO_RESET] = CreateEvent(nullptr, FALSE, FALSE, TEXT("auto_reset_event"));
+  handle_list_[EVENT_TYPE_MANUAL_RESET] = CreateEvent(nullptr, TRUE, FALSE, TEXT("manual_reset_event"));
 #endif
 }
 
@@ -69,7 +85,7 @@ bool ThreadPool::Run(int thread_num)
 bool ThreadPool::Stop()
 {
   mutex_.Lock();
-  for (std::list<ThreadTask*>::iterator it = task_list_.begin(); it != task_list_.end(); ++ it)
+  for (std::list<IThreadTask*>::iterator it = task_list_.begin(); it != task_list_.end(); ++ it)
     delete *it;
   task_list_.clear();
   mutex_.Unlock();
@@ -100,9 +116,12 @@ bool ThreadPool::Stop()
   return true;
 }
 
-bool ThreadPool::AddTask(ThreadTask *task)
+bool ThreadPool::AddTask(IThreadTask *task)
 {
-  if (NULL == task)
+  if (nullptr == task)
+    return false;
+  
+  if (!is_running_)
     return false;
   
   mutex_.Lock();
@@ -122,7 +141,7 @@ bool ThreadPool::AddTask(ThreadTask *task)
   return true;
 }
 
-ThreadTask * ThreadPool::GetNextTask()
+IThreadTask * ThreadPool::GetNextTask()
 {
   mutex_.Lock();
   
@@ -157,12 +176,14 @@ ThreadTask * ThreadPool::GetNextTask()
   {
     std::cout<<"father thread stoped, "<<task_list_.size()<<" - "<<is_running_<<std::endl;
     mutex_.Unlock();
-    return NULL;
+    return nullptr;
   }
 
   std::cout<<"GetNextTask succ!!"<<std::endl;
-  ThreadTask *task = task_list_.front();
+  IThreadTask *task = task_list_.front();
+  
   task_list_.pop_front();
+  
   mutex_.Unlock();
   return task;
 }

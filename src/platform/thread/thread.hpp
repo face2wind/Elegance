@@ -22,11 +22,11 @@ typedef DWORD ThreadReturn;
 
 #endif
 
-class ThreadTask
+class IThreadTask
 {
  public:
-  ThreadTask() {}
-  virtual ~ThreadTask() {}
+  IThreadTask() {}
+  virtual ~IThreadTask() {}
 
   void SetParam(void *param) { param_ = param; }
   
@@ -42,7 +42,7 @@ class Thread
   Thread();
   ~Thread();
 
-  bool Run(ThreadTask *func, unsigned int stack_size = 0);
+  bool Run(IThreadTask *func, unsigned int stack_size = 0);
 
   bool Join();
   bool Terminate();
