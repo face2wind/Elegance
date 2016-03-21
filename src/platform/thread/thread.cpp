@@ -95,7 +95,7 @@ Thread::~Thread()
   this->Detach();
 }
 
-bool Thread::Run(ThreadTask *func, unsigned int stack_size)
+bool Thread::Run(IThreadTask *func, unsigned int stack_size)
 {
   if (nullptr != thread_handle_)
     return false;
@@ -155,7 +155,7 @@ ThreadID Thread::GetCurrentThreadID()
 
 ThreadReturn CALLBACK Thread::StartRoutine(void *param)
 {
-  ThreadTask *thread_f = (ThreadTask*)param;
+  IThreadTask *thread_f = (IThreadTask*)param;
   if (nullptr == thread_f)
     return 0;
 

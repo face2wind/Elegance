@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{eb794f77-61db-44a9-b524-0c8e1bbad250}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\platform">
+      <UniqueIdentifier>{0d162a9c-b4e4-47be-a8ac-501ab8a24e55}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\platform\thread">
+      <UniqueIdentifier>{1ded653e-0b73-4c60-a1de-7141553ac41e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\platform\common">
+      <UniqueIdentifier>{b59200f4-e1ec-45bb-a276-ce4f26b9a038}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\common">
+      <UniqueIdentifier>{30b16e8e-9e0a-4415-acba-8facc1d8c835}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\elegance.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\platform\platform_def.hpp">
+      <Filter>src\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\platform\thread\mutex.hpp">
+      <Filter>src\platform\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\platform\thread\signal.hpp">
+      <Filter>src\platform\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\platform\thread\thread.hpp">
+      <Filter>src\platform\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\platform\thread\thread_pool.hpp">
+      <Filter>src\platform\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\platform\common\system_info.hpp">
+      <Filter>src\platform\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\platform\common\timer.hpp">
+      <Filter>src\platform\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\common\random.hpp">
+      <Filter>src\common</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\platform\thread\mutex.cpp">
+      <Filter>src\platform\thread</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\platform\thread\signal.cpp">
+      <Filter>src\platform\thread</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\platform\thread\thread.cpp">
+      <Filter>src\platform\thread</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\platform\thread\thread_pool.cpp">
+      <Filter>src\platform\thread</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\platform\common\system_info.cpp">
+      <Filter>src\platform\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\platform\common\timer.cpp">
+      <Filter>src\platform\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\random.cpp">
+      <Filter>src\common</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

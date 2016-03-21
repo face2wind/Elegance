@@ -7,21 +7,21 @@
 
 namespace face2wind {
   
-  ThreadPoolSignal::ThreadPoolSignal(ThreadPool *pool) : ISignal(SignalType::INTERRUPT)
-  {
-    thread_pool_ptr_ = pool;
-  }
+ThreadPoolSignal::ThreadPoolSignal(ThreadPool *pool) : ISignal(SignalType::INTERRUPT)
+{
+  thread_pool_ptr_ = pool;
+}
   
-  ThreadPoolSignal::~ThreadPoolSignal()
-  {
-  }
+ThreadPoolSignal::~ThreadPoolSignal()
+{
+}
   
-  void ThreadPoolSignal::OnReceive(SignalType type)
-  {
+void ThreadPoolSignal::OnReceive(SignalType type)
+{
   std::cout<<"ThreadPoolSignal::OnReceive("<<int(type)<<")"<<std::endl;
-    if (nullptr != thread_pool_ptr_)
-      thread_pool_ptr_->Stop();
-  }
+  if (nullptr != thread_pool_ptr_)
+    thread_pool_ptr_->Stop();
+}
 
 void ThreadPoolWorkingTask::Run()
 {
@@ -60,6 +60,9 @@ ThreadPool::~ThreadPool()
 
 bool ThreadPool::Run(int thread_num)
 {
+  if (is_running_)
+    return true;
+  
   if (thread_num <= 0)
     thread_num = SystemInfo::GetCPUNum();
 
@@ -84,6 +87,9 @@ bool ThreadPool::Run(int thread_num)
 
 bool ThreadPool::Stop()
 {
+  if (!is_running_)
+    return true;
+  
   mutex_.Lock();
   for (std::list<IThreadTask*>::iterator it = task_list_.begin(); it != task_list_.end(); ++ it)
     delete *it;
@@ -143,6 +149,9 @@ bool ThreadPool::AddTask(IThreadTask *task)
 
 IThreadTask * ThreadPool::GetNextTask()
 {
+  if (!is_running_)
+    return NULL;
+  
   mutex_.Lock();
   
 #ifdef __LINUX__
