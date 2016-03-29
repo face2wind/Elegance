@@ -1,4 +1,5 @@
 #include "socket_accept.hpp"
+#include <iostream>
 
 namespace face2wind {
 
@@ -17,10 +18,12 @@ void SocketAccept::ResetHandler(ISocketHandler *handler)
 
 bool SocketAccept::Listen(Port port)
 {
+  std::cout<<"dfdsfdf"<<std::endl;
   if (listening_)
     return false;
-  
+
 #ifdef __LINUX__
+  std::cout<<"linux ....."<<std::endl;
   struct sockaddr_in local_addr_;
   bzro(&local_addr_, sizeof(local_addr_));
   server_addr.sin_family = AF_INET;
@@ -75,6 +78,8 @@ bool SocketAccept::Listen(Port port)
         event.data.fd = cur_sock;
         if (-1 == epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, cur_sock, &event))
           return false;
+
+        std::cout<<"here i am ......"<<std::endl;
       }
       else
       {

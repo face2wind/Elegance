@@ -10,7 +10,6 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/epoll.h>
-#include <sys/wait.h>
 #endif
 
 namespace face2wind {
