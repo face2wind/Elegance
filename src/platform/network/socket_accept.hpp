@@ -1,6 +1,7 @@
 #pragma once
 
 #include "network_def.hpp"
+#include <platform/platform_def.hpp>
 
 #ifdef __LINUX__
 #include <unistd.h>

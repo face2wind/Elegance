@@ -26,9 +26,9 @@ bool SocketAccept::Listen(Port port)
   std::cout<<"linux ....."<<std::endl;
   struct sockaddr_in local_addr_;
   bzro(&local_addr_, sizeof(local_addr_));
-  server_addr.sin_family = AF_INET;
-  server_addr.sin_addr.s_addr = htons(INADDR_ANY);
-  server_addr.sin_port = htons(port);
+  local_addr_.sin_family = AF_INET;
+  local_addr_.sin_addr.s_addr = htons(INADDR_ANY);
+  local_addr_.sin_port = htons(port);
 
   local_sock_ = socket(PF_INET,SOCK_STREAM,0);
   if(local_sock_ < 0)
@@ -37,7 +37,7 @@ bool SocketAccept::Listen(Port port)
   if (-1 == bind(local_sock_, &local_addr_, sizeof(local_addr_)))
     return false;
 
-  if (-1 == listen(sockfd,  BACKLOG))
+  if (-1 == listen(local_sock_,  BACKLOG))
     return false;
 
   epoll_fd_ = epoll_create(MAX_EPOLL_EVENTS);
