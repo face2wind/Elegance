@@ -12,7 +12,7 @@
 #endif
 
 #ifdef __CYGWIN__
-//#define __WINDOWS__
-#define __LINUX__
+#define __WINDOWS__
+//#define __LINUX__
 #endif
 

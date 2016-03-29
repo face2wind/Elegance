@@ -6,5 +6,8 @@
 #include <platform/thread/thread_pool.hpp>
 
 #include <platform/common/timer.hpp>
+
+#include <platform/network/socket_accept.hpp>
+
 #include <common/random.hpp>
 
