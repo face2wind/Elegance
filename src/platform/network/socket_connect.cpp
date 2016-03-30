@@ -54,7 +54,7 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
     return false;
 
   struct epoll_event event;
-  event.events = EPOLLIN;
+  event.events = EPOLLIN | EPOLLET | EPOLLHUP | EPOLLERR;
   event.data.fd = local_sock_;
 
   if (-1 == epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, local_sock_, &event))
@@ -69,18 +69,48 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
     if (-1 == fd_count)
       return false;
 
+    bool socket_error = false;
     for (int index = 0; index < fd_count; ++ index)
     {
       if (epoll_event_list_[index].events & EPOLLOUT)
       {
         std::cout<<"here i am epoll out......"<<std::endl;
       }
-
-      if (epoll_event_list_[index].events & EPOLLIN)
+      else if (epoll_event_list_[index].events & EPOLLIN)
       {
         std::cout<<"here i am epoll in ......"<<std::endl;
+        int read_size = read(epoll_event_list_[index].data.fd, buff_, MAX_SOCKET_MSG_BUFF_LENGTH);
+        if (read_size > 0)
+        {
+          std::cout<<" receive : "<<buff_<<std::endl;
+        }
+        else
+        {
+          // remove listen in epoll
+          struct epoll_event ev;
+          ev.events = EPOLLIN | EPOLLET | EPOLLHUP | EPOLLERR;
+          ev.data.fd = epoll_event_list_[index].data.fd;
+          epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, epoll_event_list_[index].data.fd, &ev);
+
+          close(epoll_event_list_[index].data.fd);
+          socket_error = true;
+        }
+      }
+      else
+      {
+        // remove listen in epoll
+        struct epoll_event ev;
+        ev.events = EPOLLIN | EPOLLET | EPOLLHUP | EPOLLERR;
+        ev.data.fd = epoll_event_list_[index].data.fd;
+        epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, epoll_event_list_[index].data.fd, &ev);
+          
+        close(epoll_event_list_[index].data.fd);
+        socket_error = true;
       }
     }
+    
+    if (socket_error)
+      break;
   }
 #endif
 

@@ -3,14 +3,13 @@
 #include "network_def.hpp"
 
 #ifdef __LINUX__
-#include <unistd.h>
-#include <fcntl.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/types.h>
+#include <cstring>
 #include <sys/socket.h>
 #include <sys/epoll.h>
-#include <string.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <unistd.h>
 #endif
 
 namespace face2wind {

@@ -49,7 +49,7 @@ bool SocketAccept::Listen(Port port)
     return false;
 
   struct epoll_event event;
-  event.events = EPOLLIN;
+  event.events = EPOLLIN | EPOLLET | EPOLLHUP | EPOLLERR;
   event.data.fd = local_sock_;
 
   if (-1 == epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, local_sock_, &event))
@@ -68,6 +68,7 @@ bool SocketAccept::Listen(Port port)
 
     for (int index = 0; index < fd_count; ++ index)
     {
+      
       if (epoll_event_list_[index].data.fd == local_sock_)
       {
         int cur_sock = accept(local_sock_, (struct sockaddr *)&remote_addr, &addr_in_len);
@@ -82,18 +83,31 @@ bool SocketAccept::Listen(Port port)
         if (fcntl(cur_sock, F_SETFL, opts) < 0)
           return false;
 
-        event.events = EPOLLIN | EPOLLET;
+        event.events = EPOLLIN | EPOLLET | EPOLLHUP | EPOLLERR;
         event.data.fd = cur_sock;
         if (-1 == epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, cur_sock, &event))
           return false;
 
-        std::cout<<"here i am ......"<<std::endl;
+        std::cout<<"accept succ"<<std::endl;
+        const char str[] = "God bless you!\n";
+        if (-1 == send(cur_sock, str, sizeof(str), 0))
+          return false;
+        
       }
-      else
+      else if (epoll_event_list_[index].events & EPOLLOUT)
       {
+        std::cout<<"here i am epoll out......"<<std::endl;
         const char str[] = "God bless you!\n";
         if (-1 == send(epoll_event_list_[index].data.fd, str, sizeof(str), 0))
           return false;
+      }
+      else if (epoll_event_list_[index].events & EPOLLIN)
+      {
+        std::cout<<"here i am epoll in ......"<<std::endl;
+      }
+      else
+      {
+        
         close(epoll_event_list_[index].data.fd);
       }
     }
