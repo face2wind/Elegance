@@ -13,12 +13,12 @@ class ISocketHandler
   ISocketHandler() {}
   virtual ~ISocketHandler() {}
 
-  void OnAccept(IPAddr ip, Port port) = 0;
-  void OnConnect(IPAddr ip, Port port) = 0;
+  virtual void OnAccept(IPAddr ip, Port port) = 0;
+  virtual void OnConnect(IPAddr ip, Port port) = 0;
   
-  void OnRecv(IPAddr ip, Port port, char *data, int length) = 0;
+  virtual void OnRecv(IPAddr ip, Port port, char *data, int length) = 0;
   
-  void OnDisconnect(IPAddr ip, Port port) = 0;
+  virtual void OnDisconnect(IPAddr ip, Port port) = 0;
 };
 
 }

@@ -8,6 +8,7 @@
 #include <platform/common/timer.hpp>
 
 #include <platform/network/socket_accept.hpp>
+#include <platform/network/socket_connect.hpp>
 
 #include <common/random.hpp>
 

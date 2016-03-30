@@ -1,4 +1,6 @@
 #include "socket_accept.hpp"
+#include "i_socket_handler.hpp"
+
 #include <iostream>
 
 namespace face2wind {
@@ -18,14 +20,13 @@ void SocketAccept::ResetHandler(ISocketHandler *handler)
 
 bool SocketAccept::Listen(Port port)
 {
-  std::cout<<"dfdsfdf"<<std::endl;
   if (listening_)
     return false;
 
 #ifdef __LINUX__
   std::cout<<"linux ....."<<std::endl;
   struct sockaddr_in local_addr_;
-  bzro(&local_addr_, sizeof(local_addr_));
+  bzero(&local_addr_, sizeof(local_addr_));
   local_addr_.sin_family = AF_INET;
   local_addr_.sin_addr.s_addr = htons(INADDR_ANY);
   local_addr_.sin_port = htons(port);
@@ -33,11 +34,14 @@ bool SocketAccept::Listen(Port port)
   local_sock_ = socket(PF_INET,SOCK_STREAM,0);
   if(local_sock_ < 0)
     return false;
+  
+  int sock_reuse_on = 1;
+  setsockopt(local_sock_, SOL_SOCKET, SO_REUSEADDR, &sock_reuse_on, sizeof(sock_reuse_on));
 
-  if (-1 == bind(local_sock_, &local_addr_, sizeof(local_addr_)))
+  if (-1 == bind(local_sock_, (struct sockaddr *)&local_addr_, sizeof(local_addr_)))
     return false;
 
-  if (-1 == listen(local_sock_,  BACKLOG))
+  if (-1 == listen(local_sock_, MAX_BACKLOG))
     return false;
 
   epoll_fd_ = epoll_create(MAX_EPOLL_EVENTS);
@@ -52,8 +56,12 @@ bool SocketAccept::Listen(Port port)
     return false;
 
   int fd_count = 0;
+  socklen_t addr_in_len = (socklen_t)sizeof(struct sockaddr_in);
+  struct sockaddr_in remote_addr;
+  
   while(true)
   {
+    std::cout<<"start epoll wait ..."<<std::endl;
     fd_count = epoll_wait(epoll_fd_, epoll_event_list_, MAX_EPOLL_EVENTS, -1);
     if (-1 == fd_count)
       return false;
@@ -62,7 +70,7 @@ bool SocketAccept::Listen(Port port)
     {
       if (epoll_event_list_[index].data.fd == local_sock_)
       {
-        int cur_sock = accept(local_sock_, (struct sockaddr *)&remote_addr, sizeof(struct sockaddr_in));
+        int cur_sock = accept(local_sock_, (struct sockaddr *)&remote_addr, &addr_in_len);
         if (-1 == cur_sock)
           return false;
 
@@ -84,9 +92,9 @@ bool SocketAccept::Listen(Port port)
       else
       {
         const char str[] = "God bless you!\n";
-        if (send(epoll_event_list_[index].data.fd,  str,  sizeof(str),  0) == -1)
-          perror("send");
-        close(client_fd);
+        if (-1 == send(epoll_event_list_[index].data.fd, str, sizeof(str), 0))
+          return false;
+        close(epoll_event_list_[index].data.fd);
       }
     }
   }
