@@ -24,7 +24,6 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
     return false;
 
 #ifdef __LINUX__
-  std::cout<<"linux ....."<<std::endl;
   struct sockaddr_in local_addr_;
   bzero(&local_addr_, sizeof(local_addr_));
   local_addr_.sin_family = AF_INET;
@@ -40,6 +39,9 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
 
   if (-1 == connect(local_sock_, (struct sockaddr*)&(local_addr_), sizeof(local_addr_)))
     return false;
+
+  remote_ip_addr_ = ip;
+  remote_port_ = port;
   
   // set nonblocking
   int opts = fcntl(local_sock_, F_GETFL);
@@ -64,7 +66,7 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
   
   while(true)
   {
-    std::cout<<"start epoll wait ..."<<std::endl;
+    std::cout<<"[connect] start epoll wait ..."<<std::endl;
     fd_count = epoll_wait(epoll_fd_, epoll_event_list_, MAX_EPOLL_EVENTS, -1);
     if (-1 == fd_count)
       return false;
@@ -74,15 +76,27 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
     {
       if (epoll_event_list_[index].events & EPOLLOUT)
       {
-        std::cout<<"here i am epoll out......"<<std::endl;
+        std::cout<<"[connect] epoll out......"<<std::endl;
       }
       else if (epoll_event_list_[index].events & EPOLLIN)
       {
-        std::cout<<"here i am epoll in ......"<<std::endl;
+        std::cout<<"[connect] epoll in ......"<<std::endl;
+        
         int read_size = read(epoll_event_list_[index].data.fd, buff_, MAX_SOCKET_MSG_BUFF_LENGTH);
         if (read_size > 0)
         {
-          std::cout<<" receive : "<<buff_<<std::endl;
+          while (read_size > 0)
+          {
+            if (nullptr != handler_)
+              handler_->OnRecv(remote_ip_addr_, remote_port_, buff_, read_size);
+            
+            read_size = read(epoll_event_list_[index].data.fd, buff_, MAX_SOCKET_MSG_BUFF_LENGTH);
+          }
+                 
+          const char str[] = "i love you 222 !\n";
+          //if (-1 == send(epoll_event_list_[index].data.fd, str, sizeof(str), 0))
+          if (-1 == send(local_sock_, str, sizeof(str), 0))
+            return false;
         }
         else
         {

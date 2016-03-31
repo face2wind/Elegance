@@ -24,7 +24,6 @@ bool SocketAccept::Listen(Port port)
     return false;
 
 #ifdef __LINUX__
-  std::cout<<"linux ....."<<std::endl;
   struct sockaddr_in local_addr_;
   bzero(&local_addr_, sizeof(local_addr_));
   local_addr_.sin_family = AF_INET;
@@ -88,22 +87,28 @@ bool SocketAccept::Listen(Port port)
         if (-1 == epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, cur_sock, &event))
           return false;
 
-        std::cout<<"accept succ"<<std::endl;
-        const char str[] = "God bless you!\n";
+        std::cout<<"[server] accept succ"<<std::endl;
+
+        const char str[] = "123456789";
         if (-1 == send(cur_sock, str, sizeof(str), 0))
           return false;
         
       }
       else if (epoll_event_list_[index].events & EPOLLOUT)
       {
-        std::cout<<"here i am epoll out......"<<std::endl;
-        const char str[] = "God bless you!\n";
+        std::cout<<"[server] epoll out......"<<std::endl;
+        const char str[] = "now i can write!\n";
         if (-1 == send(epoll_event_list_[index].data.fd, str, sizeof(str), 0))
           return false;
       }
       else if (epoll_event_list_[index].events & EPOLLIN)
       {
-        std::cout<<"here i am epoll in ......"<<std::endl;
+        std::cout<<"[server] epoll in ......"<<std::endl;
+        int read_size = read(epoll_event_list_[index].data.fd, buff_, MAX_SOCKET_MSG_BUFF_LENGTH);
+        if (read_size > 0)
+        {
+          std::cout<<"[server] receive : "<<buff_<<std::endl;
+        }
       }
       else
       {

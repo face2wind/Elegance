@@ -34,6 +34,8 @@ class SocketConnect
   
 #ifdef __LINUX__
   int local_sock_;
+  IPAddr remote_ip_addr_;
+  Port remote_port_;
 
   struct epoll_event epoll_event_list_[MAX_EPOLL_EVENTS];
   int epoll_fd_;

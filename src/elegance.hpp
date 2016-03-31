@@ -1,5 +1,6 @@
 #pragma once
 
+#include <platform/network/i_socket_handler.hpp>
 #include <platform/network/socket_accept.hpp>
 #include <platform/network/socket_connect.hpp>
 

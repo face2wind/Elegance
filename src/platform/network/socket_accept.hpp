@@ -1,6 +1,7 @@
 #pragma once
 
 #include "network_def.hpp"
+#include <map>
 
 #ifdef __LINUX__
 #include <cstring>
@@ -32,12 +33,17 @@ class SocketAccept
   ISocketHandler *handler_;
 
   bool listening_;
-  
+
 #ifdef __LINUX__
   int local_sock_;
 
   struct epoll_event epoll_event_list_[MAX_EPOLL_EVENTS];
   int epoll_fd_;
+
+  char buff_[MAX_SOCKET_MSG_BUFF_LENGTH];
+
+  std::map<Endpoint, int> endpoint_sock_map_;
+  std::map<Endpoint, int> sock_endpoint_map_;
 #endif
   
 };
