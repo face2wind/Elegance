@@ -40,9 +40,6 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
   if (-1 == connect(local_sock_, (struct sockaddr*)&(local_addr_), sizeof(local_addr_)))
     return false;
 
-  remote_ip_addr_ = ip;
-  remote_port_ = port;
-  
   // set nonblocking
   int opts = fcntl(local_sock_, F_GETFL);
   if (opts < 0)
@@ -55,6 +52,17 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
   if (-1 == epoll_fd_)
     return false;
 
+  remote_ip_addr_ = ip;
+  remote_port_ = port;
+  
+  if (nullptr != handler_)
+    handler_->OnConnect(remote_ip_addr_, remote_port_);
+  
+  return true;
+}
+
+bool SocketConnect::Run()
+{
   struct epoll_event event;
   event.events = EPOLLIN | EPOLLET | EPOLLHUP | EPOLLERR;
   event.data.fd = local_sock_;

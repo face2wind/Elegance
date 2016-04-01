@@ -27,7 +27,7 @@ class SocketAccept
   void ResetHandler(ISocketHandler *handler = nullptr);
 
   bool Listen(Port port);
-  bool Write(IPAddr ip, Port port, char *data, int length);
+  bool Write(IPAddr ip, Port port, const char *data, int length);
 
  protected:
   ISocketHandler *handler_;
@@ -43,7 +43,7 @@ class SocketAccept
   char buff_[MAX_SOCKET_MSG_BUFF_LENGTH];
 
   std::map<Endpoint, int> endpoint_sock_map_;
-  std::map<Endpoint, int> sock_endpoint_map_;
+  std::map<int, Endpoint> sock_endpoint_map_;
 #endif
   
 };

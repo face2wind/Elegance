@@ -60,7 +60,7 @@ bool SocketAccept::Listen(Port port)
   
   while(true)
   {
-    std::cout<<"start epoll wait ..."<<std::endl;
+    std::cout<<"[server] start epoll wait ..."<<std::endl;
     fd_count = epoll_wait(epoll_fd_, epoll_event_list_, MAX_EPOLL_EVENTS, -1);
     if (-1 == fd_count)
       return false;
@@ -87,12 +87,17 @@ bool SocketAccept::Listen(Port port)
         if (-1 == epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, cur_sock, &event))
           return false;
 
-        std::cout<<"[server] accept succ"<<std::endl;
-
-        const char str[] = "123456789";
-        if (-1 == send(cur_sock, str, sizeof(str), 0))
-          return false;
+        Endpoint cur_endpoint(inet_ntoa(remote_addr.sin_addr), remote_addr.sin_port);
         
+        sock_endpoint_map_[cur_sock] = cur_endpoint;
+        endpoint_sock_map_[cur_endpoint] = cur_sock;
+        
+        std::cout<<"[server] accept succ from - "<<cur_endpoint.ip_addr<<":"<<cur_endpoint.port<<std::endl;
+        if (nullptr != handler_)
+          handler_->OnAccept(cur_endpoint.ip_addr, cur_endpoint.port);
+        
+        const char str[] = "123456789";
+        this->Write(cur_endpoint.ip_addr, cur_endpoint.port, str, sizeof(str));
       }
       else if (epoll_event_list_[index].events & EPOLLOUT)
       {
@@ -123,8 +128,19 @@ bool SocketAccept::Listen(Port port)
   return true;
 }
 
-bool SocketAccept::Write(IPAddr ip, Port port, char *data, int length)
+bool SocketAccept::Write(IPAddr ip, Port port, const char *data, int length)
 {
+  if (nullptr == data || length <= 0)
+    return false;
+  
+  auto sock_it = endpoint_sock_map_.find(Endpoint(ip, port));
+  if (sock_it == endpoint_sock_map_.end())
+    return false;
+
+  int cur_sock = sock_it->second;
+  if (-1 == send(cur_sock, data, length, 0))
+    return false;
+  
   return true;
 }
 

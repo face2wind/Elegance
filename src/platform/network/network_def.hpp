@@ -19,7 +19,17 @@ static const int MAX_SOCKET_MSG_BUFF_LENGTH = 5;
 
 struct Endpoint
 {
-  Endpoint(IPAddr ip, Port port) : ip_addr(""), port(0) {}
+  Endpoint() : ip_addr(""), port(0) {}
+  Endpoint(IPAddr ip, Port port) : ip_addr(ip), port(port) {}
+  bool operator <(const Endpoint &other) const
+  {
+    if (ip_addr.size() < other.ip_addr.size())
+      return true;
+    else if (ip_addr.size() > other.ip_addr.size())
+      return false;
+    else
+      return port < other.port;
+  }
   
   IPAddr ip_addr;
   Port port;
