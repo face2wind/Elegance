@@ -146,13 +146,13 @@ bool SocketAccept::Listen(Port port)
         close(epoll_event_list_[index].data.fd);
         
         auto endpoint_it = sock_endpoint_map_.find(epoll_event_list_[index].data.fd);
+        if (nullptr != handler_ && endpoint_it != sock_endpoint_map_.end())
+          handler_->OnDisconnect(endpoint_it->second.ip_addr, endpoint_it->second.port);
         if (endpoint_it != sock_endpoint_map_.end())
         {
           endpoint_sock_map_.erase(endpoint_it->second);
           sock_endpoint_map_.erase(endpoint_it);
         }
-        if (nullptr != handler_ && endpoint_it != sock_endpoint_map_.end())
-          handler_->OnDisconnect(endpoint_it->second.ip_addr, endpoint_it->second.port);
       }
     }
   }
