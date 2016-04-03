@@ -67,7 +67,6 @@ bool SocketAccept::Listen(Port port)
 
     for (int index = 0; index < fd_count; ++ index)
     {
-      
       if (epoll_event_list_[index].data.fd == local_sock_)
       {
         int cur_sock = accept(local_sock_, (struct sockaddr *)&remote_addr, &addr_in_len);
@@ -95,30 +94,65 @@ bool SocketAccept::Listen(Port port)
         std::cout<<"[server] accept succ from - "<<cur_endpoint.ip_addr<<":"<<cur_endpoint.port<<std::endl;
         if (nullptr != handler_)
           handler_->OnAccept(cur_endpoint.ip_addr, cur_endpoint.port);
-        
-        const char str[] = "123456789";
-        this->Write(cur_endpoint.ip_addr, cur_endpoint.port, str, sizeof(str));
       }
       else if (epoll_event_list_[index].events & EPOLLOUT)
       {
         std::cout<<"[server] epoll out......"<<std::endl;
-        const char str[] = "now i can write!\n";
-        if (-1 == send(epoll_event_list_[index].data.fd, str, sizeof(str), 0))
-          return false;
       }
       else if (epoll_event_list_[index].events & EPOLLIN)
       {
         std::cout<<"[server] epoll in ......"<<std::endl;
+        auto endpoint_it = sock_endpoint_map_.find(epoll_event_list_[index].data.fd);
         int read_size = read(epoll_event_list_[index].data.fd, buff_, MAX_SOCKET_MSG_BUFF_LENGTH);
         if (read_size > 0)
         {
-          std::cout<<"[server] receive : "<<buff_<<std::endl;
+          while (read_size > 0)
+          {
+            buff_[read_size] = '\0';
+            if (nullptr != handler_ && endpoint_it != sock_endpoint_map_.end())
+              handler_->OnRecv(endpoint_it->second.ip_addr, endpoint_it->second.port, buff_, read_size);
+            
+            read_size = read(epoll_event_list_[index].data.fd, buff_, MAX_SOCKET_MSG_BUFF_LENGTH);
+          }
+        }
+        else
+        {
+            
+          // remove listen in epoll
+          struct epoll_event ev;
+          ev.events = EPOLLIN | EPOLLET | EPOLLHUP | EPOLLERR;
+          ev.data.fd = epoll_event_list_[index].data.fd;
+          epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, epoll_event_list_[index].data.fd, &ev);
+          
+          close(epoll_event_list_[index].data.fd);
+          
+          if (nullptr != handler_ && endpoint_it != sock_endpoint_map_.end())
+            handler_->OnDisconnect(endpoint_it->second.ip_addr, endpoint_it->second.port);
+          if (endpoint_it != sock_endpoint_map_.end())
+          {
+            endpoint_sock_map_.erase(endpoint_it->second);
+            sock_endpoint_map_.erase(endpoint_it);
+          }
         }
       }
       else
       {
-        
+        // remove listen in epoll
+        struct epoll_event ev;
+        ev.events = EPOLLIN | EPOLLET | EPOLLHUP | EPOLLERR;
+        ev.data.fd = epoll_event_list_[index].data.fd;
+        epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, epoll_event_list_[index].data.fd, &ev);
+          
         close(epoll_event_list_[index].data.fd);
+        
+        auto endpoint_it = sock_endpoint_map_.find(epoll_event_list_[index].data.fd);
+        if (endpoint_it != sock_endpoint_map_.end())
+        {
+          endpoint_sock_map_.erase(endpoint_it->second);
+          sock_endpoint_map_.erase(endpoint_it);
+        }
+        if (nullptr != handler_ && endpoint_it != sock_endpoint_map_.end())
+          handler_->OnDisconnect(endpoint_it->second.ip_addr, endpoint_it->second.port);
       }
     }
   }

@@ -95,16 +95,12 @@ bool SocketConnect::Run()
         {
           while (read_size > 0)
           {
+            buff_[read_size] = '\0';
             if (nullptr != handler_)
               handler_->OnRecv(remote_ip_addr_, remote_port_, buff_, read_size);
             
             read_size = read(epoll_event_list_[index].data.fd, buff_, MAX_SOCKET_MSG_BUFF_LENGTH);
           }
-                 
-          const char str[] = "i love you 222 !\n";
-          //if (-1 == send(epoll_event_list_[index].data.fd, str, sizeof(str), 0))
-          if (-1 == send(local_sock_, str, sizeof(str), 0))
-            return false;
         }
         else
         {
@@ -116,6 +112,9 @@ bool SocketConnect::Run()
 
           close(epoll_event_list_[index].data.fd);
           socket_error = true;
+          
+          if (nullptr != handler_)
+            handler_->OnDisconnect(remote_ip_addr_, remote_port_);
         }
       }
       else
@@ -128,6 +127,9 @@ bool SocketConnect::Run()
           
         close(epoll_event_list_[index].data.fd);
         socket_error = true;
+        
+        if (nullptr != handler_)
+          handler_->OnDisconnect(remote_ip_addr_, remote_port_);
       }
     }
     
@@ -140,8 +142,12 @@ bool SocketConnect::Run()
   return true;
 }
 
-bool SocketConnect::Write(char *data, int length)
+bool SocketConnect::Write(const char *data, int length)
 {
+  //if (-1 == send(epoll_event_list_[index].data.fd, str, sizeof(str), 0))
+  if (-1 == send(local_sock_, data, length, 0))
+    return false;
+  
   return true;
 }
 

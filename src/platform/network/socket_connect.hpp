@@ -26,7 +26,7 @@ class SocketConnect
 
   bool Connect(IPAddr ip, Port port);
   bool Run();
-  bool Write(char *data, int length);
+  bool Write(const char *data, int length);
 
  protected:
   ISocketHandler *handler_;
