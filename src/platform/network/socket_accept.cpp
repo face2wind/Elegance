@@ -1,7 +1,6 @@
 #include "socket_accept.hpp"
 #include "i_socket_handler.hpp"
 
-#include <iostream>
 
 namespace face2wind {
 
@@ -18,12 +17,12 @@ void SocketAccept::ResetHandler(ISocketHandler *handler)
   handler_ = handler;
 }
 
+#ifdef __LINUX__
 bool SocketAccept::Listen(Port port)
 {
   if (listening_)
     return false;
 
-#ifdef __LINUX__
   struct sockaddr_in local_addr_;
   bzero(&local_addr_, sizeof(local_addr_));
   local_addr_.sin_family = AF_INET;
@@ -156,7 +155,6 @@ bool SocketAccept::Listen(Port port)
       }
     }
   }
-#endif
 
   listening_ = true;  
   return true;
@@ -177,5 +175,16 @@ bool SocketAccept::Write(IPAddr ip, Port port, const char *data, int length)
   
   return true;
 }
+#endif
+
+#ifdef __WINDOWS__
+bool SocketAccept::Listen(Port port)
+{
+}
+
+bool SocketAccept::Write(IPAddr ip, Port port, const char *data, int length)
+{
+}
+#endif
 
 }

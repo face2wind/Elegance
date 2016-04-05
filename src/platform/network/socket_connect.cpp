@@ -1,8 +1,6 @@
 #include "socket_connect.hpp"
 #include "i_socket_handler.hpp"
 
-#include <iostream>
-
 namespace face2wind {
 
 SocketConnect::SocketConnect() : handler_(NULL), running_(false)
@@ -18,12 +16,12 @@ void SocketConnect::ResetHandler(ISocketHandler *handler)
   handler_ = handler;
 }
 
+#ifdef __LINUX__
 bool SocketConnect::Connect(IPAddr ip, Port port)
 {
   if (running_)
     return false;
 
-#ifdef __LINUX__
   struct sockaddr_in local_addr_;
   bzero(&local_addr_, sizeof(local_addr_));
   local_addr_.sin_family = AF_INET;
@@ -131,7 +129,6 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
     if (socket_error)
       break;
   }
-#endif
 
   running_ = true;  
   return true;
@@ -145,5 +142,18 @@ bool SocketConnect::Write(const char *data, int length)
   
   return true;
 }
+#endif
+
+#ifdef __WINDOWS__
+bool SocketConnect::Connect(IPAddr ip, Port port)
+{
+  return true;
+}
+
+bool SocketConnect::Write(const char *data, int length)
+{
+  return true;
+}
+#endif
 
 }
