@@ -60,7 +60,7 @@ bool SocketAccept::Listen(Port port)
   
   while(true)
   {
-    std::cout<<"[server] start epoll wait ..."<<std::endl;
+    //std::cout<<"[server] start epoll wait ..."<<std::endl;
     fd_count = epoll_wait(epoll_fd_, epoll_event_list_, MAX_EPOLL_EVENTS, -1);
     if (-1 == fd_count)
       return false;
@@ -91,17 +91,17 @@ bool SocketAccept::Listen(Port port)
         sock_endpoint_map_[cur_sock] = cur_endpoint;
         endpoint_sock_map_[cur_endpoint] = cur_sock;
         
-        std::cout<<"[server] accept succ from - "<<cur_endpoint.ip_addr<<":"<<cur_endpoint.port<<std::endl;
+        //std::cout<<"[server] accept succ from - "<<cur_endpoint.ip_addr<<":"<<cur_endpoint.port<<std::endl;
         if (nullptr != handler_)
           handler_->OnAccept(cur_endpoint.ip_addr, cur_endpoint.port);
       }
       else if (epoll_event_list_[index].events & EPOLLOUT)
       {
-        std::cout<<"[server] epoll out......"<<std::endl;
+        //std::cout<<"[server] epoll out......"<<std::endl;
       }
       else if (epoll_event_list_[index].events & EPOLLIN)
       {
-        std::cout<<"[server] epoll in ......"<<std::endl;
+        //std::cout<<"[server] epoll in ......"<<std::endl;
         auto endpoint_it = sock_endpoint_map_.find(epoll_event_list_[index].data.fd);
         int read_size = read(epoll_event_list_[index].data.fd, buff_, MAX_SOCKET_MSG_BUFF_LENGTH);
         if (read_size > 0)

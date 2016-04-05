@@ -58,11 +58,6 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
   if (nullptr != handler_)
     handler_->OnConnect(remote_ip_addr_, remote_port_);
   
-  return true;
-}
-
-bool SocketConnect::Run()
-{
   struct epoll_event event;
   event.events = EPOLLIN | EPOLLET | EPOLLHUP | EPOLLERR;
   event.data.fd = local_sock_;
@@ -74,7 +69,7 @@ bool SocketConnect::Run()
   
   while(true)
   {
-    std::cout<<"[connect] start epoll wait ..."<<std::endl;
+    //std::cout<<"[connect] start epoll wait ..."<<std::endl;
     fd_count = epoll_wait(epoll_fd_, epoll_event_list_, MAX_EPOLL_EVENTS, -1);
     if (-1 == fd_count)
       return false;
@@ -84,11 +79,11 @@ bool SocketConnect::Run()
     {
       if (epoll_event_list_[index].events & EPOLLOUT)
       {
-        std::cout<<"[connect] epoll out......"<<std::endl;
+        //std::cout<<"[connect] epoll out......"<<std::endl;
       }
       else if (epoll_event_list_[index].events & EPOLLIN)
       {
-        std::cout<<"[connect] epoll in ......"<<std::endl;
+        //std::cout<<"[connect] epoll in ......"<<std::endl;
         
         int read_size = read(epoll_event_list_[index].data.fd, buff_, MAX_SOCKET_MSG_BUFF_LENGTH);
         if (read_size > 0)

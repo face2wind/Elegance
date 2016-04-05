@@ -25,7 +25,6 @@ class SocketConnect
   void ResetHandler(ISocketHandler *handler = nullptr);
 
   bool Connect(IPAddr ip, Port port);
-  bool Run();
   bool Write(const char *data, int length);
 
  protected:
