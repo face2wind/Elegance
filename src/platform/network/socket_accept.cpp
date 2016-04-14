@@ -4,6 +4,12 @@
 
 namespace face2wind {
 
+void SocketAccept::ResetHandler(ISocketHandler *handler)
+{
+  handler_ = handler;
+}
+
+#ifdef __LINUX__
 SocketAccept::SocketAccept() : handler_(NULL), listening_(false)
 {
 }
@@ -12,12 +18,6 @@ SocketAccept::~SocketAccept()
 {
 }
 
-void SocketAccept::ResetHandler(ISocketHandler *handler)
-{
-  handler_ = handler;
-}
-
-#ifdef __LINUX__
 bool SocketAccept::Listen(Port port)
 {
   if (listening_)
@@ -178,7 +178,15 @@ bool SocketAccept::Write(IPAddr ip, Port port, const char *data, int length)
 #endif
 
 #ifdef __WINDOWS__
-DWORD WINAPI ServerWorkThread(LPVOID CompletionPortID)
+SocketAccept::SocketAccept() : handler_(NULL), listening_(false), all_send_(true)
+{
+}
+
+SocketAccept::~SocketAccept()
+{
+}
+
+DWORD WINAPI SocketAccept::ServerWorkThread(LPVOID CompletionPortID)
 {
 	HANDLE complationPort = (HANDLE)CompletionPortID;
 	DWORD bytesTransferred;
@@ -188,7 +196,7 @@ DWORD WINAPI ServerWorkThread(LPVOID CompletionPortID)
 	DWORD recvBytes = 0;
 	DWORD flags;
 
-	while (1)
+	while (true)
 	{
 		if (GetQueuedCompletionStatus(complationPort, &bytesTransferred, (PULONG_PTR)&pHandleData, (LPOVERLAPPED *)&pIoData, INFINITE) == 0)
 		{
@@ -196,10 +204,22 @@ DWORD WINAPI ServerWorkThread(LPVOID CompletionPortID)
 			return 0;
 		}
 
-		// 检查数据是否已经传输完了
 		if (bytesTransferred == 0)
 		{
-			std::cout << " Start closing socket..." << std::endl;
+			// socket aleady disconnect
+			
+			if (nullptr != pIoData->accept_ptr)
+			{
+				auto endpoint_it = pIoData->accept_ptr->sock_endpoint_map_.find(pHandleData->socket);
+
+				if (nullptr != pIoData->accept_ptr->handler_ && endpoint_it != pIoData->accept_ptr->sock_endpoint_map_.end())
+					pIoData->accept_ptr->handler_->OnDisconnect(endpoint_it->second.ip_addr, endpoint_it->second.port);
+
+				pIoData->accept_ptr->endpoint_sock_map_.erase(endpoint_it->second);
+				pIoData->accept_ptr->sock_endpoint_map_.erase(endpoint_it);
+				pIoData->accept_ptr->send_queue_map_.erase(pHandleData->socket);
+			}
+
 			if (CloseHandle((HANDLE)pHandleData->socket) == SOCKET_ERROR)
 			{
 				std::cout << "Close socket failed. Error:" << GetLastError() << std::endl;
@@ -211,65 +231,118 @@ DWORD WINAPI ServerWorkThread(LPVOID CompletionPortID)
 			continue;
 		}
 
-		// 检查管道里是否有数据
-		if (pIoData->bytesRecv == 0)
-		{
-			pIoData->bytesRecv = bytesTransferred;
-			pIoData->bytesSend = 0;
-		}
-		else
-		{
-			pIoData->bytesSend += bytesTransferred;
-		}
+		pIoData->bytesTransferred += bytesTransferred;
+		
+		bool all_bytes_transferred = bytesTransferred >= pIoData->databuff.len;
 
-		// 数据没有发完，继续发送
-		if (pIoData->bytesRecv > pIoData->bytesSend)
+		if (pIoData->type == IOCPHandleType::SEND)
 		{
-			ZeroMemory(&(pIoData->overlapped), sizeof(OVERLAPPED));
-			pIoData->databuff.buf = pIoData->buffer + pIoData->bytesSend;
-			pIoData->databuff.len = pIoData->bytesRecv - pIoData->bytesSend;
+			if (all_bytes_transferred)
+			{
+				if (nullptr != pIoData->accept_ptr)
+				{
+					LPPER_IO_OPERATION_DATA new_pio_data_ptr = nullptr; // get next queue send data
+					while (nullptr == new_pio_data_ptr && !pIoData->accept_ptr->send_queue_map_[pHandleData->socket].empty())
+					{
+						new_pio_data_ptr = pIoData->accept_ptr->send_queue_map_[pHandleData->socket].front();
+						pIoData->accept_ptr->send_queue_map_[pHandleData->socket].pop();
+					}
 
-			// 发送数据出去
-			if (WSASend(pHandleData->socket, &(pIoData->databuff), 1, &sendBytes, 0, &(pIoData->overlapped), NULL) == SOCKET_ERROR)
+					if (nullptr != new_pio_data_ptr)
+					{
+						if (WSASend(pHandleData->socket, &(new_pio_data_ptr->databuff), 1, &sendBytes, 0, &(new_pio_data_ptr->overlapped), NULL) == SOCKET_ERROR)
+						{
+							if (WSAGetLastError() != ERROR_IO_PENDING)
+							{
+								std::cout << "WSASend() failed. Error:" << GetLastError() << std::endl;
+								return 0;
+							}
+							else
+							{
+								pIoData->accept_ptr->send_queue_map_[pHandleData->socket].push(NULL);
+							}
+						}
+					}
+				}
+				//GlobalFree(pHandleData);
+				GlobalFree(pIoData);
+			}
+			else
+			{
+				// 继续发送剩余的
+				pIoData->databuff.buf += bytesTransferred;
+				pIoData->databuff.len -= bytesTransferred;
+				ZeroMemory(&(pIoData->overlapped), sizeof(pIoData->overlapped));
+
+				if (WSASend(pHandleData->socket, &(pIoData->databuff), 1, &sendBytes, 0, &(pIoData->overlapped), NULL) == SOCKET_ERROR)
+				{
+					if (WSAGetLastError() != ERROR_IO_PENDING)
+					{
+						std::cout << "WSASend() failed. Error:" << GetLastError() << std::endl;
+						return 0;
+					}
+				}
+				std::cout << "Send " << pIoData->buffer << std::endl;
+			}
+		}
+		else if (pIoData->type == IOCPHandleType::RECV)
+		{
+			// 接收数据，不管有没有接收完全，都直接触发事件，并重新接收下一段数据
+
+			if (nullptr != pIoData->accept_ptr)
+			{
+				auto endpoint_it = pIoData->accept_ptr->sock_endpoint_map_.find(pHandleData->socket);
+
+				if (nullptr != pIoData->accept_ptr->handler_ && endpoint_it != pIoData->accept_ptr->sock_endpoint_map_.end())
+					pIoData->accept_ptr->handler_->OnRecv(endpoint_it->second.ip_addr, endpoint_it->second.port, pIoData->buffer, pIoData->bytesTransferred);
+			}
+
+			LPPER_IO_OPERATION_DATA new_pIoData = (LPPER_IO_OPERATION_DATA)GlobalAlloc(GPTR, sizeof(PER_IO_OPERATEION_DATA));
+			if (NULL == new_pIoData)
+			{
+				std::cout << "GlobalAlloc( IoData ) failed. Error:" << GetLastError() << std::endl;
+				return false;
+			}
+
+			ZeroMemory(&(new_pIoData->overlapped), sizeof(new_pIoData->overlapped));
+			new_pIoData->databuff.len = MAX_SOCKET_MSG_BUFF_LENGTH;
+			new_pIoData->databuff.buf = new_pIoData->buffer;
+			new_pIoData->type = IOCPHandleType::RECV;
+			new_pIoData->bytesTransferred = 0;
+			new_pIoData->accept_ptr = pIoData->accept_ptr;
+
+			flags = 0;
+			if (WSARecv(pHandleData->socket, &(new_pIoData->databuff), 1, &recvBytes, &flags, &(new_pIoData->overlapped), NULL) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != ERROR_IO_PENDING)
 				{
-					std::cout << "WSASend() failed. Error:" << GetLastError() << std::endl;
-					return 0;
-				}
-				else
-				{
-					std::cout << "WSASend() failed. io pending. Error:" << GetLastError() << std::endl;
-					return 0;
+					std::cout << "WSARecv() failed. Error:" << GetLastError() << std::endl;
+					return false;
 				}
 			}
 
-			std::cout << "Send " << pIoData->buffer << std::endl;
-		}
-		else
-		{
-			pIoData->bytesRecv = 0;
-			flags = 0;
-
-			ZeroMemory(&(pIoData->overlapped), sizeof(OVERLAPPED));
+			/*
+			ZeroMemory(&(pIoData->overlapped), sizeof(pIoData->overlapped));
 			pIoData->databuff.len = MAX_SOCKET_MSG_BUFF_LENGTH;
 			pIoData->databuff.buf = pIoData->buffer;
+			pIoData->bytesTransferred = 0;
+			recvBytes = bytesTransferred;
 
+			flags = 0;
 			if (WSARecv(pHandleData->socket, &(pIoData->databuff), 1, &recvBytes, &flags, &(pIoData->overlapped), NULL) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != ERROR_IO_PENDING)
 				{
 					std::cout << "WSARecv() failed. Error:" << GetLastError() << std::endl;
-					return 0;
-				}
-				else
-				{
-					std::cout << "WSARecv() io pending" << std::endl;
-					return 0;
+					return false;
 				}
 			}
+			*/
+
+			//GlobalFree(pHandleData);
+			GlobalFree(pIoData);
 		}
-	}
+	} // while end
 }
 
 bool SocketAccept::Listen(Port port)
@@ -292,7 +365,7 @@ bool SocketAccept::Listen(Port port)
   }
 
   completionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
-  if (completionPort == NULL)
+  if (NULL == completionPort)
   {
 	  std::cout << "CreateIoCompletionPort failed. Error:" << GetLastError() << std::endl;
 	  return false;
@@ -306,8 +379,8 @@ bool SocketAccept::Listen(Port port)
   for (DWORD i = 0; i < (mySysInfo.dwNumberOfProcessors * 2 + 1); ++i)
   {
 	  HANDLE threadHandle;
-	  threadHandle = CreateThread(NULL, 0, ServerWorkThread, completionPort, 0, &threadID);
-	  if (threadHandle == NULL)
+	  threadHandle = CreateThread(NULL, 0, SocketAccept::ServerWorkThread, completionPort, 0, &threadID);
+	  if (NULL == threadHandle)
 	  {
 		  std::cout << "CreateThread failed. Error:" << GetLastError() << std::endl;
 		  return false;
@@ -343,11 +416,12 @@ bool SocketAccept::Listen(Port port)
   }
 
   // 开始死循环，处理数据
-  while (1)
+  while (true)
   {
 	  SOCKET acceptSocket;
 	  SOCKADDR_IN client_sock_addr;
-	  acceptSocket = WSAAccept(listenSocket, (sockaddr *)&client_sock_addr, NULL, NULL, 0);
+	  int addr_size = sizeof(client_sock_addr);
+	  acceptSocket = WSAAccept(listenSocket, (sockaddr *)&client_sock_addr, &addr_size, NULL, 0);
 	  if (acceptSocket == SOCKET_ERROR)
 	  {
 		  std::cout << "WSAAccept failed. Error:" << GetLastError() << std::endl;
@@ -355,32 +429,34 @@ bool SocketAccept::Listen(Port port)
 	  }
 
 	  pHandleData = (LPPER_HANDLE_DATA)GlobalAlloc(GPTR, sizeof(PER_HANDLE_DATA));
-	  if (pHandleData = NULL)
+	  if (NULL == pHandleData)
 	  {
 		  std::cout << "GlobalAlloc( HandleData ) failed. Error:" << GetLastError() << std::endl;
 		  return false;
 	  }
 
 	  pHandleData->socket = acceptSocket;
-	  if (CreateIoCompletionPort((HANDLE)acceptSocket, completionPort, (ULONG_PTR)pHandleData, 0) == NULL)
+	  if (NULL == CreateIoCompletionPort((HANDLE)acceptSocket, completionPort, (ULONG_PTR)pHandleData, 0))
 	  {
 		  std::cout << "CreateIoCompletionPort failed. Error:" << GetLastError() << std::endl;
 		  return false;
 	  }
 
 	  pIoData = (LPPER_IO_OPERATION_DATA)GlobalAlloc(GPTR, sizeof(PER_IO_OPERATEION_DATA));
-	  if (pIoData == NULL)
+	  if (NULL == pIoData)
 	  {
 		  std::cout << "GlobalAlloc( IoData ) failed. Error:" << GetLastError() << std::endl;
 		  return false;
 	  }
 
 	  ZeroMemory(&(pIoData->overlapped), sizeof(pIoData->overlapped));
-	  pIoData->bytesSend = 0;
-	  pIoData->bytesRecv = 0;
 	  pIoData->databuff.len = MAX_SOCKET_MSG_BUFF_LENGTH;
 	  pIoData->databuff.buf = pIoData->buffer;
+	  pIoData->type = IOCPHandleType::RECV;
+	  pIoData->bytesTransferred = 0;
+	  pIoData->accept_ptr = this;
 
+	  flags = 0;
 	  if (WSARecv(acceptSocket, &(pIoData->databuff), 1, &recvBytes, &flags, &(pIoData->overlapped), NULL) == SOCKET_ERROR)
 	  {
 		  if (WSAGetLastError() != ERROR_IO_PENDING)
@@ -390,10 +466,18 @@ bool SocketAccept::Listen(Port port)
 		  }
 		  else
 		  {
-			  std::cout << "WSARecv() io pending" << std::endl;
-			  return false;
+			  //std::cout << "WSARecv() io pending" << std::endl;
+			  //return false;
 		  }
 	  }
+
+	  Endpoint cur_endpoint(inet_ntoa(client_sock_addr.sin_addr), client_sock_addr.sin_port);
+
+	  sock_endpoint_map_[acceptSocket] = cur_endpoint;
+	  endpoint_sock_map_[cur_endpoint] = acceptSocket;
+
+	  if (nullptr != handler_)
+		  handler_->OnAccept(cur_endpoint.ip_addr, cur_endpoint.port);
   }
 
   listening_ = true;
@@ -402,17 +486,42 @@ bool SocketAccept::Listen(Port port)
 
 bool SocketAccept::Write(IPAddr ip, Port port, const char *data, int length)
 {
-	if (WSASend(acceptSocket, &(pIoData->databuff), 1, &recvBytes, &flags, &(pIoData->overlapped), NULL) == SOCKET_ERROR)
+	if (nullptr == data || length <= 0 || length > MAX_SOCKET_MSG_BUFF_LENGTH)
+		return false;
+
+	auto sock_it = endpoint_sock_map_.find(Endpoint(ip, port));
+	if (sock_it == endpoint_sock_map_.end())
+		return false;
+
+	SOCKET cur_sock = sock_it->second;
+	DWORD recvBytes = 0;
+
+	LPPER_IO_OPERATION_DATA pIoData = (LPPER_IO_OPERATION_DATA)GlobalAlloc(GPTR, sizeof(PER_IO_OPERATEION_DATA));
+	if (NULL == pIoData)
+		return false;
+	ZeroMemory(&(pIoData->overlapped), sizeof(pIoData->overlapped));
+	memcpy(pIoData->buffer, data, length);
+	pIoData->databuff.len = length;
+	pIoData->databuff.buf = pIoData->buffer;
+	pIoData->type = IOCPHandleType::SEND;
+	pIoData->accept_ptr = this;
+
+	if (!send_queue_map_[cur_sock].empty()) // aleady pending, must wait for send complete
+	{
+		send_queue_map_[cur_sock].push(pIoData);
+	}
+	else if (WSASend(cur_sock, &(pIoData->databuff), 1, &recvBytes, 0, &(pIoData->overlapped), NULL) == SOCKET_ERROR)
 	{
 		if (WSAGetLastError() != ERROR_IO_PENDING)
 		{
-			std::cout << "WSARecv() failed. Error:" << GetLastError() << std::endl;
+			std::cout << "WSASend() failed. Error:" << GetLastError() << std::endl;
 			return false;
 		}
 		else
 		{
-			std::cout << "WSARecv() io pending" << std::endl;
-			return false;
+			send_queue_map_[cur_sock].push(NULL);
+			//std::cout << "WSASend() io pending" << std::endl;
+			//return false;
 		}
 	}
 

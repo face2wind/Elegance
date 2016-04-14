@@ -9,7 +9,7 @@ namespace face2wind {
 typedef unsigned short Port;
 typedef std::string IPAddr;
 
-static const int MAX_SOCKET_MSG_BUFF_LENGTH = 5;
+static const int MAX_SOCKET_MSG_BUFF_LENGTH = 1024 * 4;
 static const int MAX_BACKLOG = 128;
 
 #ifdef __LINUX__
