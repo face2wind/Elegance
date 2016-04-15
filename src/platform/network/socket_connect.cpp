@@ -1,5 +1,6 @@
 #include "socket_connect.hpp"
 #include "i_socket_handler.hpp"
+#include <iostream>
 
 namespace face2wind {
 
@@ -14,6 +15,12 @@ SocketConnect::~SocketConnect()
 void SocketConnect::ResetHandler(ISocketHandler *handler)
 {
   handler_ = handler;
+}
+
+bool SocketConnect::Disconnect()
+{
+  running_ = false;
+  return true;
 }
 
 #ifdef __LINUX__
@@ -65,7 +72,8 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
 
   int fd_count = 0;
   
-  while(true)
+  running_ = true;
+  while(running_)
   {
     //std::cout<<"[connect] start epoll wait ..."<<std::endl;
     fd_count = epoll_wait(epoll_fd_, epoll_event_list_, MAX_EPOLL_EVENTS, -1);
@@ -130,7 +138,7 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
       break;
   }
 
-  running_ = true;  
+  running_ = false;
   return true;
 }
 
@@ -145,13 +153,87 @@ bool SocketConnect::Write(const char *data, int length)
 #endif
 
 #ifdef __WINDOWS__
+
 bool SocketConnect::Connect(IPAddr ip, Port port)
 {
+  if (running_)
+    return false;
+
+  WSADATA          wsaData;
+  SOCKADDR_IN      ServerAddr;
+  int Ret;
+  //初始化winsock 2.2版本  
+  if ((Ret = WSAStartup(MAKEWORD(2, 2), &wsaData)) != 0)
+  {
+    std::cout<<"Error:WSAStartup failed with "<<Ret<<std::endl;
+    return false;
+  }
+
+  //创建一个新的套接字来建立客户机连接  
+  if ((local_sock_ = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == INVALID_SOCKET)
+  {
+    printf("ERROR:socket failed with %d/n", WSAGetLastError());
+    WSACleanup();
+    return false;
+  }
+	
+  ServerAddr.sin_family = AF_INET;
+  ServerAddr.sin_port = htons(port);
+  //ServerAddr.sin_addr.s_addr = inet_addr(ip.c_str());
+  inet_pton(AF_INET, ip.c_str(), &ServerAddr.sin_addr);
+
+  if (SOCKET_ERROR == connect(local_sock_, (SOCKADDR *)&ServerAddr, sizeof(ServerAddr)))
+  {
+    std::cout<<"connect failed with "<<WSAGetLastError()<<std::endl;
+    closesocket(local_sock_);
+    WSACleanup();
+    return false;
+  }
+
+  remote_ip_addr_ = ip;
+  remote_port_ = port;
+  running_ = true;
+
+  if (nullptr != handler_)
+    handler_->OnConnect(remote_ip_addr_, remote_port_);
+
+  while (running_)
+  {
+    int recv_size = recv(local_sock_, buff_, MAX_SOCKET_MSG_BUFF_LENGTH, 0);
+    if (0 == recv_size)
+    {
+      break;
+    }
+
+    if (nullptr != handler_)
+      handler_->OnRecv(remote_ip_addr_, remote_port_, buff_, recv_size);
+  }
+
+  if (nullptr != handler_)
+    handler_->OnDisconnect(remote_ip_addr_, remote_port_);
+
+  //关闭套接字  
+  closesocket(local_sock_);
+  //应用程序完成对连接的处理后，调用WSACleanup  
+  WSACleanup();
+
+  running_ = false;
   return true;
 }
 
 bool SocketConnect::Write(const char *data, int length)
 {
+  if (!running_)
+    return false;
+
+  //发送数据  
+  if (SOCKET_ERROR == send(local_sock_, data, length, 0))
+  {
+    printf("send failed with %d/n", WSAGetLastError());
+    running_ = false;
+    return false;
+  }
+
   return true;
 }
 #endif

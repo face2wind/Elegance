@@ -11,6 +11,12 @@
 #include <fcntl.h>
 #include <unistd.h>
 #endif
+#ifdef __WINDOWS__
+#include <queue>
+
+//#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
+#endif
 
 namespace face2wind {
 
@@ -26,21 +32,26 @@ class SocketConnect
 
   bool Connect(IPAddr ip, Port port);
   bool Write(const char *data, int length);
+  bool Disconnect();
 
  protected:
   ISocketHandler *handler_;
 
   bool running_;
-  
-#ifdef __LINUX__
-  int local_sock_;
+
   IPAddr remote_ip_addr_;
   Port remote_port_;
 
+  char buff_[MAX_SOCKET_MSG_BUFF_LENGTH];
+
+#ifdef __LINUX__
+  int local_sock_;
+
   struct epoll_event epoll_event_list_[MAX_EPOLL_EVENTS];
   int epoll_fd_;
-
-  char buff_[MAX_SOCKET_MSG_BUFF_LENGTH];
+#endif
+#ifdef __WINDOWS__
+  SOCKET local_sock_;
 #endif
 };
 

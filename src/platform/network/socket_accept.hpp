@@ -14,35 +14,7 @@
 #endif
 #ifdef __WINDOWS__
 #include <queue>
-#include <winsock2.h>
-#include <Windows.h>
-#pragma comment(lib, "Ws2_32.lib") // Socket编程需用的动态链接库
-//#pragma comment(lib, "Kernel32.lib") // IOCP需要用到的动态链接库
 
-namespace face2wind {
-	
-	class SocketAccept;
-	enum class IOCPHandleType
-	{
-		SEND,
-		RECV
-	};
-
-	typedef struct
-	{
-		OVERLAPPED overlapped;
-		WSABUF databuff;
-		CHAR buffer[MAX_SOCKET_MSG_BUFF_LENGTH];
-		DWORD bytesTransferred;
-		IOCPHandleType type;
-		SocketAccept *accept_ptr;
-	}PER_IO_OPERATEION_DATA, *LPPER_IO_OPERATION_DATA;
-
-	typedef struct
-	{
-		SOCKET socket;
-	}PER_HANDLE_DATA, *LPPER_HANDLE_DATA;
-}
 #endif
 
 namespace face2wind {
@@ -59,6 +31,7 @@ class SocketAccept
 
   bool Listen(Port port);
   bool Write(IPAddr ip, Port port, const char *data, int length);
+  bool Disconnect(IPAddr ip, Port port);
 
  protected:
   ISocketHandler *handler_;
@@ -83,7 +56,6 @@ class SocketAccept
 
   static DWORD WINAPI ServerWorkThread(LPVOID CompletionPortID);
 
-  bool all_send_;
 #endif
   
 };
