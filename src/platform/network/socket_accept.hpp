@@ -1,6 +1,7 @@
 #pragma once
 
-#include "network_def.hpp"
+#include "socket_def.hpp"
+
 #include <map>
 
 #ifdef __LINUX__

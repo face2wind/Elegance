@@ -1,6 +1,8 @@
 #pragma once
 
-#include <platform/network/i_socket_handler.hpp>
+// platform hpps
+
+#include <platform/network/socket_def.hpp>
 #include <platform/network/socket_accept.hpp>
 #include <platform/network/socket_connect.hpp>
 
@@ -11,5 +13,9 @@
 
 #include <platform/common/timer.hpp>
 
+
+// non platform hpps
+
 #include <common/random.hpp>
 
+#include <network/network_manager.hpp>

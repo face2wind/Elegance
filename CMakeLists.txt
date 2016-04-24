@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(Elegance)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -ggdb -O0 -lpthread -Wall -Werror")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -ggdb -O0 -pthread -Wall -Werror")
 
 file(GLOB_RECURSE SOURCE_FILES ./src/*.cpp)
 
