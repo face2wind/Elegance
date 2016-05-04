@@ -149,6 +149,7 @@
   <ItemGroup>
     <ClInclude Include="..\src\common\random.hpp" />
     <ClInclude Include="..\src\elegance.hpp" />
+    <ClInclude Include="..\src\network\network_manager.hpp" />
     <ClInclude Include="..\src\platform\common\system_info.hpp" />
     <ClInclude Include="..\src\platform\common\timer.hpp" />
     <ClInclude Include="..\src\platform\network\i_socket_handler.hpp" />
@@ -164,6 +165,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\common\random.cpp" />
+    <ClCompile Include="..\src\network\network_manager.cpp" />
     <ClCompile Include="..\src\platform\common\system_info.cpp" />
     <ClCompile Include="..\src\platform\common\timer.cpp" />
     <ClCompile Include="..\src\platform\network\socket_accept.cpp" />

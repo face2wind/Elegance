@@ -238,4 +238,9 @@ bool SocketConnect::Write(const char *data, int length)
 }
 #endif
 
+bool SocketConnect::CheckOnHandle(IPAddr ip, Port port)
+{
+	return (ip == remote_ip_addr_ && port == remote_port_);
+}
+
 }

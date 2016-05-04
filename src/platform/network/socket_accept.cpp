@@ -529,6 +529,12 @@ bool SocketAccept::Disconnect(IPAddr ip, Port port)
 
   return true;
 }
+
 #endif
+
+bool SocketAccept::CheckOnHandle(IPAddr ip, Port port)
+{
+	return endpoint_sock_map_.find(Endpoint(ip, port)) != endpoint_sock_map_.end();
+}
 
 }

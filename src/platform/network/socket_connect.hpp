@@ -34,6 +34,8 @@ class SocketConnect
   bool Write(const char *data, int length);
   bool Disconnect();
 
+  bool CheckOnHandle(IPAddr ip, Port port);
+
  protected:
   ISocketHandler *handler_;
 

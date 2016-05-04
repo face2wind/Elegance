@@ -19,6 +19,9 @@
     <Filter Include="src\platform\network">
       <UniqueIdentifier>{70de25f9-d653-47e5-b8ef-4141bdb42304}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\network">
+      <UniqueIdentifier>{6113aed6-6ac3-40f2-8f95-42444dd64b52}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\elegance.hpp">
@@ -63,6 +66,9 @@
     <ClInclude Include="..\src\platform\network\socket_connect.hpp">
       <Filter>src\platform\network</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\network\network_manager.hpp">
+      <Filter>src\network</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\platform\thread\mutex.cpp">
@@ -91,6 +97,9 @@
     </ClCompile>
     <ClCompile Include="..\src\platform\network\socket_connect.cpp">
       <Filter>src\platform\network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\network\network_manager.cpp">
+      <Filter>src\network</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

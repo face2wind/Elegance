@@ -51,6 +51,8 @@ class Thread
   ThreadID GetThreadID() const;
   static ThreadID GetCurrentThreadID();
 
+  bool IsRunning() { return running_; }
+
  private:
 #ifdef __LINUX__
   static ThreadReturn StartRoutine(void *param);
@@ -63,6 +65,8 @@ class Thread
   
  private:
   ThreadID thread_id_;
+  IThreadTask *cur_task_;
+  bool running_;
 
 #ifdef __WINDOWS__
   HANDLE thread_handle_;
