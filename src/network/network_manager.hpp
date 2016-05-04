@@ -19,7 +19,7 @@ typedef int NetworkID;
 
 class INetworkHandler
 {
-public:
+ public:
   virtual void OnListenFail(Port port) = 0;
   virtual void OnAccept(IPAddr ip, Port port, NetworkID net_id = 0) = 0;
   virtual void OnConnect(IPAddr ip, Port port, bool success, NetworkID net_id = 0) = 0;
@@ -30,23 +30,23 @@ public:
 
 class NetworkManagerListenTask : public IThreadTask
 {
-public:
-	NetworkManagerListenTask() : port(0) {}
+ public:
+  NetworkManagerListenTask() : port(0) {}
 
-	Port port;
+  Port port;
 
-	virtual void Run();
+  virtual void Run();
 };
 
 class NetworkManagerConnectTask : public IThreadTask
 {
-public:
-	NetworkManagerConnectTask() : ip(""), port(0) {}
+ public:
+  NetworkManagerConnectTask() : ip(""), port(0) {}
 
-	IPAddr ip;
-	Port port;
+  IPAddr ip;
+  Port port;
 
-	virtual void Run();
+  virtual void Run();
 };
 
 class NetworkManager : public ISocketHandler
@@ -66,12 +66,12 @@ class NetworkManager : public ISocketHandler
   void SyncListen(Port port);
   void SyncConnect(IPAddr ip, Port port);
   
-  void Send(NetworkID net_id, char *data, int length);
+  void Send(NetworkID net_id, const char *data, int length);
   void Disconnect(NetworkID net_id);
 
   void WaitAllThread();
   
-protected:
+ protected:
   Thread * GetFreeThread();
   NetworkID GetFreeNetID();
 
