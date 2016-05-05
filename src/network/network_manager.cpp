@@ -6,9 +6,9 @@
 namespace face2wind
 {
 
-NetworkManager::NetworkManager() : max_net_id_(0)
+NetworkManager::NetworkManager() : max_net_id_(0), packager_(nullptr), packer_type_(NetworkPackerType::BEGIN)
 {
-
+	packager_ = NetworkPackerFactory::CreatePacker(packer_type_, this);
 }
   
 NetworkManager::~NetworkManager()
@@ -79,13 +79,8 @@ void NetworkManager::Send(NetworkID net_id, const char *data, int length)
   if (endpoint_it == net_id_to_endpoint_map_.end())
     return;
 
-  auto accept_it = net_id_to_accept_.find(net_id);
-  if (accept_it != net_id_to_accept_.end())
-    accept_it->second->Write(endpoint_it->second.ip_addr, endpoint_it->second.port, data, length);
-
-  auto connect_it = net_id_to_connect_.find(net_id);
-  if (connect_it != net_id_to_connect_.end())
-    connect_it->second->Write(data, length);
+  if (nullptr != packager_)
+	  packager_->PackAndSend(net_id, data, length);
 }
 
 void NetworkManager::Disconnect(NetworkID net_id)
@@ -236,8 +231,8 @@ void NetworkManager::OnRecv(IPAddr ip, Port port, char *data, int length)
   if (net_id_it == endpoint_to_net_id_map_.end())
     return;
 
-  for (auto handler : handler_list_)
-    handler->OnRecv(net_id_it->second, data, length);
+  if (nullptr != packager_)
+	  packager_->UnPack(net_id_it->second, data, length);
 }
 
 void NetworkManager::OnDisconnect(IPAddr ip, Port port)
@@ -265,6 +260,30 @@ void NetworkManager::OnDisconnect(IPAddr ip, Port port)
     handler->OnDisconnect(net_id_it->second);
 
   free_net_id_list_.push(net_id_it->second);
+}
+
+void NetworkManager::SendRaw(NetworkID net_id, const char *data, int length)
+{
+	auto endpoint_it = net_id_to_endpoint_map_.find(net_id);
+	if (endpoint_it == net_id_to_endpoint_map_.end())
+		return;
+
+	auto accept_it = net_id_to_accept_.find(net_id);
+	if (accept_it != net_id_to_accept_.end())
+		accept_it->second->Write(endpoint_it->second.ip_addr, endpoint_it->second.port, data, length);
+
+	auto connect_it = net_id_to_connect_.find(net_id);
+	if (connect_it != net_id_to_connect_.end())
+		connect_it->second->Write(data, length);
+}
+
+void NetworkManager::OnRecvPackage(NetworkID net_id, char *data, int length)
+{
+	if (net_id <= 0 || nullptr == data || length <= 0)
+		return;
+
+	for (auto handler : handler_list_)
+		handler->OnRecv(net_id, data, length);
 }
 
 

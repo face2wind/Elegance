@@ -8,14 +8,14 @@
 
 #include <platform/thread/mutex.hpp>
 #include <platform/thread/thread_pool.hpp>
+#include <network/network_packer_factory.hpp>
 
 namespace face2wind
 {
 
 class SocketAccept;
 class SocketConnect;
-
-typedef int NetworkID;
+class NetworkManager;
 
 class INetworkHandler
 {
@@ -59,6 +59,7 @@ class NetworkManager : public ISocketHandler
   friend class SocketConnect;
   friend class NetworkManagerListenTask;
   friend class NetworkManagerConnectTask;
+  friend class INetworkPackager;
 
   void RegistHandler(INetworkHandler *handler);
   void UnregistHandler(INetworkHandler *handler);
@@ -83,6 +84,9 @@ class NetworkManager : public ISocketHandler
   virtual void OnRecv(IPAddr ip, Port port, char *data, int length);
   virtual void OnDisconnect(IPAddr ip, Port port);
 
+  void SendRaw(NetworkID net_id, const char *data, int length);
+  void OnRecvPackage(NetworkID net_id, char *data, int length);
+
  private:
   std::set<Thread *> thread_set_;
 
@@ -102,6 +106,9 @@ class NetworkManager : public ISocketHandler
 
   Mutex accept_list_mutex_;
   Mutex connect_list_mutex_;
+
+  INetworkPackager *packager_;
+  NetworkPackerType packer_type_;
 };
 
 

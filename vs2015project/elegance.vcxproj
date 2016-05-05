@@ -149,14 +149,15 @@
   <ItemGroup>
     <ClInclude Include="..\src\common\random.hpp" />
     <ClInclude Include="..\src\elegance.hpp" />
+    <ClInclude Include="..\src\memory\flexible_buffer.hpp" />
     <ClInclude Include="..\src\network\network_manager.hpp" />
+    <ClInclude Include="..\src\network\network_packer\network_packer_fixhead.hpp" />
+    <ClInclude Include="..\src\network\network_packer_factory.hpp" />
     <ClInclude Include="..\src\platform\common\system_info.hpp" />
     <ClInclude Include="..\src\platform\common\timer.hpp" />
-    <ClInclude Include="..\src\platform\network\i_socket_handler.hpp" />
-    <ClInclude Include="..\src\platform\network\network_def.hpp" />
-    <ClInclude Include="..\src\platform\network\socket.hpp" />
     <ClInclude Include="..\src\platform\network\socket_accept.hpp" />
     <ClInclude Include="..\src\platform\network\socket_connect.hpp" />
+    <ClInclude Include="..\src\platform\network\socket_def.hpp" />
     <ClInclude Include="..\src\platform\platform_def.hpp" />
     <ClInclude Include="..\src\platform\thread\mutex.hpp" />
     <ClInclude Include="..\src\platform\thread\signal.hpp" />
@@ -166,6 +167,8 @@
   <ItemGroup>
     <ClCompile Include="..\src\common\random.cpp" />
     <ClCompile Include="..\src\network\network_manager.cpp" />
+    <ClCompile Include="..\src\network\network_packer\network_packer_fixhead.cpp" />
+    <ClCompile Include="..\src\network\network_packer_factory.cpp" />
     <ClCompile Include="..\src\platform\common\system_info.cpp" />
     <ClCompile Include="..\src\platform\common\timer.cpp" />
     <ClCompile Include="..\src\platform\network\socket_accept.cpp" />
