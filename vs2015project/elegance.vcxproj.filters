@@ -28,6 +28,9 @@
     <Filter Include="src\memory">
       <UniqueIdentifier>{0c42a0af-595b-4d58-a6d4-6088f346c86e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\rpc">
+      <UniqueIdentifier>{fc88facc-ed48-4b30-8687-3d48be6b83a8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\elegance.hpp">
@@ -78,6 +81,12 @@
     <ClInclude Include="..\src\memory\flexible_buffer.hpp">
       <Filter>src\memory</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\rpc\rpc_manager.hpp">
+      <Filter>src\rpc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\common\debug_message.hpp">
+      <Filter>src\common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\platform\thread\mutex.cpp">
@@ -115,6 +124,12 @@
     </ClCompile>
     <ClCompile Include="..\src\network\network_packer\network_packer_fixhead.cpp">
       <Filter>src\network\network_packer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rpc\rpc_manager.cpp">
+      <Filter>src\rpc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\debug_message.cpp">
+      <Filter>src\common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

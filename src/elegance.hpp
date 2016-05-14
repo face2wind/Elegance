@@ -19,3 +19,5 @@
 #include <common/random.hpp>
 
 #include <network/network_manager.hpp>
+
+#include <rpc/rpc_manager.hpp>

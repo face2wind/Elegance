@@ -40,6 +40,7 @@ class SocketAccept
   ISocketHandler *handler_;
 
   bool listening_;
+  Port local_port;
 
 #ifdef __LINUX__
   int local_sock_;

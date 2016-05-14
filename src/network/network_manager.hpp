@@ -21,10 +21,10 @@ class INetworkHandler
 {
  public:
   virtual void OnListenFail(Port port) = 0;
-  virtual void OnAccept(IPAddr ip, Port port, NetworkID net_id = 0) = 0;
-  virtual void OnConnect(IPAddr ip, Port port, bool success, NetworkID net_id = 0) = 0;
+  virtual void OnAccept(IPAddr ip, Port port, Port local_port, NetworkID net_id = 0) = 0;
+  virtual void OnConnect(IPAddr ip, Port port, Port local_port, bool success, NetworkID net_id = 0) = 0;
   
-  virtual void OnRecv(NetworkID net_id, char *data, int length) = 0;
+  virtual void OnRecv(NetworkID net_id, const char *data, int length) = 0;
   virtual void OnDisconnect(NetworkID net_id) = 0;
 };
 
@@ -79,10 +79,10 @@ class NetworkManager : public ISocketHandler
   void ListenThread(Port port);
   void ConnectThread(IPAddr ip, Port port);
 
-  virtual void OnAccept(IPAddr ip, Port port);
-  virtual void OnConnect(IPAddr ip, Port port);
-  virtual void OnRecv(IPAddr ip, Port port, char *data, int length);
-  virtual void OnDisconnect(IPAddr ip, Port port);
+  virtual void OnAccept(IPAddr remote_ip, Port remote_port, Port local_port);
+  virtual void OnConnect(IPAddr remote_ip, Port remote_port, Port local_port);
+  virtual void OnRecv(IPAddr ip, Port port, Port local_port, char *data, int length);
+  virtual void OnDisconnect(IPAddr ip, Port port, Port local_port);
 
   void SendRaw(NetworkID net_id, const char *data, int length);
   void OnRecvPackage(NetworkID net_id, char *data, int length);

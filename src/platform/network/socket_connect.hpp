@@ -35,6 +35,7 @@ class SocketConnect
   bool Disconnect();
 
   bool CheckOnHandle(IPAddr ip, Port port);
+  Port GetLocalPort() { return local_port_;  }
 
  protected:
   ISocketHandler *handler_;
@@ -43,6 +44,7 @@ class SocketConnect
 
   IPAddr remote_ip_addr_;
   Port remote_port_;
+  Port local_port_;
 
   char buff_[MAX_SOCKET_MSG_BUFF_LENGTH];
 

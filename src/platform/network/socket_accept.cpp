@@ -93,7 +93,7 @@ bool SocketAccept::Listen(Port port)
         
         //std::cout<<"[server] accept succ from - "<<cur_endpoint.ip_addr<<":"<<cur_endpoint.port<<std::endl;
         if (nullptr != handler_)
-          handler_->OnAccept(cur_endpoint.ip_addr, cur_endpoint.port);
+          handler_->OnAccept(cur_endpoint.remote_ip_addr, cur_endpoint.remote_port);
       }
       else if (epoll_event_list_[index].events & EPOLLOUT)
       {
@@ -223,7 +223,7 @@ DWORD WINAPI SocketAccept::ServerWorkThread(LPVOID CompletionPortID)
         auto endpoint_it = pIoData->accept_ptr->sock_endpoint_map_.find(pHandleData->socket);
 
         if (nullptr != pIoData->accept_ptr->handler_ && endpoint_it != pIoData->accept_ptr->sock_endpoint_map_.end())
-          pIoData->accept_ptr->handler_->OnDisconnect(endpoint_it->second.ip_addr, endpoint_it->second.port);
+          pIoData->accept_ptr->handler_->OnDisconnect(endpoint_it->second.remote_ip_addr, endpoint_it->second.remote_port, endpoint_it->second.local_port);
 
         pIoData->accept_ptr->endpoint_sock_map_.erase(endpoint_it->second);
         pIoData->accept_ptr->sock_endpoint_map_.erase(endpoint_it);
@@ -307,7 +307,7 @@ DWORD WINAPI SocketAccept::ServerWorkThread(LPVOID CompletionPortID)
         auto endpoint_it = pIoData->accept_ptr->sock_endpoint_map_.find(pHandleData->socket);
 
         if (nullptr != pIoData->accept_ptr->handler_ && endpoint_it != pIoData->accept_ptr->sock_endpoint_map_.end())
-          pIoData->accept_ptr->handler_->OnRecv(endpoint_it->second.ip_addr, endpoint_it->second.port, pIoData->buffer, pIoData->bytesTransferred);
+          pIoData->accept_ptr->handler_->OnRecv(endpoint_it->second.remote_ip_addr, endpoint_it->second.remote_port, endpoint_it->second.local_port, pIoData->buffer, pIoData->bytesTransferred);
       }
 			
       ZeroMemory(&(pIoData->overlapped), sizeof(pIoData->overlapped));
@@ -402,6 +402,8 @@ bool SocketAccept::Listen(Port port)
     return false;
   }
 
+  local_port = port;
+
   // 开始死循环，处理数据
   while (true)
   {
@@ -460,16 +462,17 @@ bool SocketAccept::Listen(Port port)
 
     char ip_buff[20];
     inet_ntop(AF_INET, &client_sock_addr.sin_addr, ip_buff, 20);
-    Endpoint cur_endpoint(ip_buff, client_sock_addr.sin_port);
+    Endpoint cur_endpoint(ip_buff, client_sock_addr.sin_port, port);
     //Endpoint cur_endpoint(inet_ntoa(client_sock_addr.sin_addr), client_sock_addr.sin_port);
 
     sock_endpoint_map_[acceptSocket] = cur_endpoint;
     endpoint_sock_map_[cur_endpoint] = acceptSocket;
 
     if (nullptr != handler_)
-      handler_->OnAccept(cur_endpoint.ip_addr, cur_endpoint.port);
+      handler_->OnAccept(cur_endpoint.remote_ip_addr, cur_endpoint.remote_port, cur_endpoint.local_port);
   }
 
+  local_port = 0;
   CloseHandle(completionPort);
   listening_ = true;
   return true;
@@ -480,7 +483,7 @@ bool SocketAccept::Write(IPAddr ip, Port port, const char *data, int length)
   if (nullptr == data || length <= 0 || length > MAX_SOCKET_MSG_BUFF_LENGTH)
     return false;
 
-  auto sock_it = endpoint_sock_map_.find(Endpoint(ip, port));
+  auto sock_it = endpoint_sock_map_.find(Endpoint(ip, port, local_port));
   if (sock_it == endpoint_sock_map_.end())
     return false;
 
@@ -520,7 +523,7 @@ bool SocketAccept::Write(IPAddr ip, Port port, const char *data, int length)
 
 bool SocketAccept::Disconnect(IPAddr ip, Port port)
 {
-  auto sock_it = endpoint_sock_map_.find(Endpoint(ip, port));
+  auto sock_it = endpoint_sock_map_.find(Endpoint(ip, port, local_port));
   if (sock_it == endpoint_sock_map_.end())
     return false;
 
@@ -534,7 +537,7 @@ bool SocketAccept::Disconnect(IPAddr ip, Port port)
 
 bool SocketAccept::CheckOnHandle(IPAddr ip, Port port)
 {
-	return endpoint_sock_map_.find(Endpoint(ip, port)) != endpoint_sock_map_.end();
+	return endpoint_sock_map_.find(Endpoint(ip, port, local_port)) != endpoint_sock_map_.end();
 }
 
 }

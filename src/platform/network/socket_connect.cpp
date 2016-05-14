@@ -45,6 +45,13 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
   if (-1 == connect(local_sock_, (struct sockaddr*)&(local_addr_), sizeof(local_addr_)))
     return false;
 
+  struct sockaddr_in connected_addr;
+  socklen_t connected_addr_len = sizeof(connected_addr);
+  getsockname(local_sock_, (struct sockaddr*)&connected_addr, &connected_addr_len);
+  local_port_ = ntohs(connected_addr.sin_port);
+
+  local_port_ = connected_addr.
+
   // set nonblocking
   int opts = fcntl(local_sock_, F_GETFL);
   if (opts < 0)
@@ -190,12 +197,17 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
     return false;
   }
 
+  struct sockaddr_in connected_addr;
+  socklen_t connected_addr_len = sizeof(connected_addr);
+  getsockname(local_sock_, (struct sockaddr*)&connected_addr, &connected_addr_len);
+  local_port_ = ntohs(connected_addr.sin_port);
+
   remote_ip_addr_ = ip;
   remote_port_ = port;
   running_ = true;
 
   if (nullptr != handler_)
-    handler_->OnConnect(remote_ip_addr_, remote_port_);
+    handler_->OnConnect(remote_ip_addr_, remote_port_, local_port_);
 
   while (running_)
   {
@@ -206,11 +218,11 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
     }
 
     if (nullptr != handler_)
-      handler_->OnRecv(remote_ip_addr_, remote_port_, buff_, recv_size);
+      handler_->OnRecv(remote_ip_addr_, remote_port_, local_port_, buff_, recv_size);
   }
 
   if (nullptr != handler_)
-    handler_->OnDisconnect(remote_ip_addr_, remote_port_);
+    handler_->OnDisconnect(remote_ip_addr_, remote_port_, local_port_);
 
   //¹Ø±ÕÌ×½Ó×Ö  
   closesocket(local_sock_);

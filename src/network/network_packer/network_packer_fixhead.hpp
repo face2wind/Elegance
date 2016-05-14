@@ -7,10 +7,14 @@
 
 namespace face2wind {
 
+
+#pragma pack(push, 4)
+
 	struct NetPackerFixHeadMsgHeader
 	{
 		int package_length;
 	};
+#pragma pack(pop)
 
 	const static int NET_PACKER_FIXHEAD_HEADER_LENGTH = sizeof(NetPackerFixHeadMsgHeader);
 

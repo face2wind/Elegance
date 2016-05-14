@@ -91,7 +91,7 @@ void NetworkManager::Disconnect(NetworkID net_id)
 
   auto accept_it = net_id_to_accept_.find(net_id);
   if (accept_it != net_id_to_accept_.end())
-    accept_it->second->Disconnect(endpoint_it->second.ip_addr, endpoint_it->second.port);
+    accept_it->second->Disconnect(endpoint_it->second.remote_ip_addr, endpoint_it->second.remote_port);
 
   auto connect_it = net_id_to_connect_.find(net_id);
   if (connect_it != net_id_to_connect_.end())
@@ -178,56 +178,57 @@ void NetworkManager::ConnectThread(IPAddr ip, Port port)
   if (!connect_result)
   {
     for (auto handler : handler_list_)
-      handler->OnConnect(ip, port, false);
+      handler->OnConnect(ip, port, connect->GetLocalPort(), false);
   }
 
   connect_list_.erase(connect);
   delete connect;
 }
 
-void NetworkManager::OnAccept(IPAddr ip, Port port)
+//void NetworkManager::OnAccept(IPAddr ip, Port port)
+void NetworkManager::OnAccept(IPAddr remote_ip, Port remote_port, Port local_port)
 {
   NetworkID net_id = this->GetFreeNetID();
 
   for (auto accept : accept_list_)
   {
-    if (accept->CheckOnHandle(ip, port))
+    if (accept->CheckOnHandle(remote_ip, remote_port))
     {
       net_id_to_accept_[net_id] = accept;
 
-      Endpoint end_point(ip, port);
+      Endpoint end_point(remote_ip, remote_port, local_port);
       net_id_to_endpoint_map_[net_id] = end_point;
       endpoint_to_net_id_map_[end_point] = net_id;
     }
   }
 
   for (auto handler : handler_list_)
-    handler->OnAccept(ip, port, net_id);
+    handler->OnAccept(remote_ip, remote_port, local_port, net_id);
 }
 
-void NetworkManager::OnConnect(IPAddr ip, Port port)
+void NetworkManager::OnConnect(IPAddr remote_ip, Port remote_port, Port local_port)
 {
   NetworkID net_id = this->GetFreeNetID();
 
   for (auto connect : connect_list_)
   {
-    if (connect->CheckOnHandle(ip, port))
+    if (connect->CheckOnHandle(remote_ip, remote_port))
     {
       net_id_to_connect_[net_id] = connect;
 
-      Endpoint end_point(ip, port);
+      Endpoint end_point(remote_ip, remote_port, local_port);
       net_id_to_endpoint_map_[net_id] = end_point;
       endpoint_to_net_id_map_[end_point] = net_id;
     }
   }
 
   for (auto handler : handler_list_)
-    handler->OnConnect(ip, port, true, net_id);
+    handler->OnConnect(remote_ip, remote_port, true, net_id);
 }
 
-void NetworkManager::OnRecv(IPAddr ip, Port port, char *data, int length)
+void NetworkManager::OnRecv(IPAddr ip, Port port, Port local_port, char *data, int length)
 {
-  auto net_id_it = endpoint_to_net_id_map_.find(Endpoint(ip, port));
+  auto net_id_it = endpoint_to_net_id_map_.find(Endpoint(ip, port, local_port));
   if (net_id_it == endpoint_to_net_id_map_.end())
     return;
 
@@ -235,9 +236,9 @@ void NetworkManager::OnRecv(IPAddr ip, Port port, char *data, int length)
 	  packager_->UnPack(net_id_it->second, data, length);
 }
 
-void NetworkManager::OnDisconnect(IPAddr ip, Port port)
+void NetworkManager::OnDisconnect(IPAddr ip, Port port, Port local_port)
 {
-  auto net_id_it = endpoint_to_net_id_map_.find(Endpoint(ip, port));
+  auto net_id_it = endpoint_to_net_id_map_.find(Endpoint(ip, port, local_port));
   if (net_id_it == endpoint_to_net_id_map_.end())
     return;
 
@@ -270,7 +271,7 @@ void NetworkManager::SendRaw(NetworkID net_id, const char *data, int length)
 
 	auto accept_it = net_id_to_accept_.find(net_id);
 	if (accept_it != net_id_to_accept_.end())
-		accept_it->second->Write(endpoint_it->second.ip_addr, endpoint_it->second.port, data, length);
+		accept_it->second->Write(endpoint_it->second.remote_ip_addr, endpoint_it->second.remote_port, data, length);
 
 	auto connect_it = net_id_to_connect_.find(net_id);
 	if (connect_it != net_id_to_connect_.end())

@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\common\debug_message.hpp" />
     <ClInclude Include="..\src\common\random.hpp" />
     <ClInclude Include="..\src\elegance.hpp" />
     <ClInclude Include="..\src\memory\flexible_buffer.hpp" />
@@ -163,8 +164,10 @@
     <ClInclude Include="..\src\platform\thread\signal.hpp" />
     <ClInclude Include="..\src\platform\thread\thread.hpp" />
     <ClInclude Include="..\src\platform\thread\thread_pool.hpp" />
+    <ClInclude Include="..\src\rpc\rpc_manager.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\common\debug_message.cpp" />
     <ClCompile Include="..\src\common\random.cpp" />
     <ClCompile Include="..\src\network\network_manager.cpp" />
     <ClCompile Include="..\src\network\network_packer\network_packer_fixhead.cpp" />
@@ -177,6 +180,7 @@
     <ClCompile Include="..\src\platform\thread\signal.cpp" />
     <ClCompile Include="..\src\platform\thread\thread.cpp" />
     <ClCompile Include="..\src\platform\thread\thread_pool.cpp" />
+    <ClCompile Include="..\src\rpc\rpc_manager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

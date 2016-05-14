@@ -54,20 +54,30 @@ typedef struct
 
 struct Endpoint
 {
-  Endpoint() : ip_addr(""), port(0) {}
-  Endpoint(IPAddr ip, Port port) : ip_addr(ip), port(port) {}
+  Endpoint() : remote_ip_addr(""), remote_port(0), local_port(0) {}
+  //Endpoint(IPAddr remote_ip_addr_ = "", Port remote_port_ = 0, Port local_port_ = 0) : remote_ip_addr(remote_ip_addr_), remote_port(remote_port_), local_port(local_port_) {}
+  Endpoint(IPAddr remote_ip_addr_, Port remote_port_, Port local_port_) : remote_ip_addr(remote_ip_addr_), remote_port(remote_port_), local_port(local_port_) {}
+
   bool operator <(const Endpoint &other) const
   {
-    if (ip_addr.size() < other.ip_addr.size())
+    if (remote_ip_addr.size() < other.remote_ip_addr.size())
       return true;
-    else if (ip_addr.size() > other.ip_addr.size())
+    else if (remote_ip_addr.size() > other.remote_ip_addr.size())
       return false;
     else
-      return port < other.port;
+	{
+		if (remote_port < other.remote_port)
+			return true;
+		else if (remote_port > other.remote_port)
+			return false;
+		else
+			return local_port < other.local_port;
+	}
   }
 
-  IPAddr ip_addr;
-  Port port;
+  IPAddr remote_ip_addr;
+  Port remote_port;
+  Port local_port;
 };
 
 class ISocketHandler
@@ -76,10 +86,10 @@ class ISocketHandler
   ISocketHandler() {}
   virtual ~ISocketHandler() {}
 
-  virtual void OnAccept(IPAddr ip, Port port) = 0;
-  virtual void OnConnect(IPAddr ip, Port port) = 0;
-  virtual void OnRecv(IPAddr ip, Port port, char *data, int length) = 0;
-  virtual void OnDisconnect(IPAddr ip, Port port) = 0;
+  virtual void OnAccept(IPAddr remote_ip, Port remote_port, Port local_port) = 0;
+  virtual void OnConnect(IPAddr remote_ip, Port remote_port, Port local_port) = 0;
+  virtual void OnRecv(IPAddr remote_ip, Port remote_port, Port local_port, char *data, int length) = 0;
+  virtual void OnDisconnect(IPAddr remote_ip, Port remote_port, Port local_port) = 0;
 };
 
 }
