@@ -12,11 +12,13 @@
 #include <platform/thread/thread_pool.hpp>
 
 #include <platform/common/timer.hpp>
+#include <platform/common/system_info.hpp>
 
 
 // non platform hpps
 
 #include <common/random.hpp>
+#include <common/debug_message.hpp>
 
 #include <network/network_manager.hpp>
 

@@ -3,26 +3,37 @@
 
 namespace face2wind
 {
-	DebugMessage *DebugMessage::GetInstance()
+	DebugMessage::DebugMessage()
+	{
+		msg_type_to_head_str_map_[DebugMessageType::THREAD] = "[thread] ";
+		msg_type_to_head_str_map_[DebugMessageType::BASE_NETWORK] = "[network] ";
+		msg_type_to_head_str_map_[DebugMessageType::REMOTE_PROCEDURE_CALL] = "[rpc] ";
+	}
+
+	DebugMessage &DebugMessage::GetInstance()
 	{
 		static DebugMessage instance;
-		return &instance;
+		return instance;
 	}
 
-	void DebugMessage::SetOnshowType(int type, bool show_it)
+	void DebugMessage::SetOnshowType(DebugMessageType type, bool show_it)
 	{
 		if (true == show_it)
-			m_onshow_type_set.insert(type);
-		else if (m_onshow_type_set.count(type) > 0)
-			m_onshow_type_set.erase(type);
+			onshow_type_set_.insert(type);
+		else if (onshow_type_set_.count(type) > 0)
+			onshow_type_set_.erase(type);
 	}
 
-	void DebugMessage::ShowMessage(int type, const std::string &msg)
+	void DebugMessage::ShowMessage(DebugMessageType type, const std::string &msg)
 	{
-		if (m_onshow_type_set.find(type) != m_onshow_type_set.end())
+		show_msg_lock_.Lock();
+
+		if (onshow_type_set_.find(type) != onshow_type_set_.end())
 		{
-			std::cout << msg << std::endl;
+			std::cout << msg_type_to_head_str_map_[type] << msg << std::endl;
 		}
+
+		show_msg_lock_.Unlock();
 	}
 	
 }

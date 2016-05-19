@@ -3,6 +3,9 @@
 #include <platform/network/socket_accept.hpp>
 #include <platform/network/socket_connect.hpp>
 
+#include "common/debug_message.hpp"
+#include <sstream>
+
 namespace face2wind
 {
 
@@ -27,6 +30,10 @@ void NetworkManager::RegistHandler(INetworkHandler *handler)
     return;
 
   handler_list_.insert(handler);
+
+  std::stringstream ss;
+  ss << "NetworkManager::RegistHandler(" << handler << ")";
+  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
 }
 
 void NetworkManager::UnregistHandler(INetworkHandler *handler)
@@ -35,6 +42,10 @@ void NetworkManager::UnregistHandler(INetworkHandler *handler)
     return;
 
   handler_list_.erase(handler);
+
+  std::stringstream ss;
+  ss << "NetworkManager::UnregistHandler(" << handler << ")";
+  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
 }
 
 void NetworkManagerListenTask::Run()
@@ -77,7 +88,11 @@ void NetworkManager::Send(NetworkID net_id, const char *data, int length)
 {
   auto endpoint_it = net_id_to_endpoint_map_.find(net_id);
   if (endpoint_it == net_id_to_endpoint_map_.end())
-    return;
+	  return;
+
+  std::stringstream ss;
+  ss << "NetworkManager::Send net_id = " << net_id << " length = " << length;
+  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
 
   if (nullptr != packager_)
 	  packager_->PackAndSend(net_id, data, length);
@@ -87,7 +102,11 @@ void NetworkManager::Disconnect(NetworkID net_id)
 {
   auto endpoint_it = net_id_to_endpoint_map_.find(net_id);
   if (endpoint_it == net_id_to_endpoint_map_.end())
-    return;
+	  return;
+
+  std::stringstream ss;
+  ss << "NetworkManager::Disconnect net_id = " << net_id;
+  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
 
   auto accept_it = net_id_to_accept_.find(net_id);
   if (accept_it != net_id_to_accept_.end())
@@ -95,7 +114,7 @@ void NetworkManager::Disconnect(NetworkID net_id)
 
   auto connect_it = net_id_to_connect_.find(net_id);
   if (connect_it != net_id_to_connect_.end())
-    connect_it->second->Disconnect();
+	  connect_it->second->Disconnect();
 }
 
 void NetworkManager::WaitAllThread()
@@ -152,6 +171,10 @@ void NetworkManager::ListenThread(Port port)
   accept_list_.insert(accept);
   //accept_list_mutex_.Unlock();
 
+  std::stringstream ss;
+  ss << "NetworkManager::ListenThread port = " << port;
+  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+
   bool listen_result = accept->Listen(port);
 
   if (!listen_result)
@@ -173,12 +196,16 @@ void NetworkManager::ConnectThread(IPAddr ip, Port port)
   connect_list_.insert(connect);
   //accept_list_mutex_.Unlock();
 
+  std::stringstream ss;
+  ss << "NetworkManager::ConnectThread remote = " << ip << ":" << port;
+  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+
   bool connect_result = connect->Connect(ip, port);
 
   if (!connect_result)
   {
     for (auto handler : handler_list_)
-      handler->OnConnect(ip, port, connect->GetLocalPort(), false);
+      handler->OnConnect(ip, port, connect->GetLocalPort(), false, 0);
   }
 
   connect_list_.erase(connect);
@@ -202,6 +229,10 @@ void NetworkManager::OnAccept(IPAddr remote_ip, Port remote_port, Port local_por
     }
   }
 
+  std::stringstream ss;
+  ss << "NetworkManager::OnAccept remote = " << remote_ip << ":" << remote_port << ", local_port = " << local_port << ", net_id = "<< net_id;
+  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+
   for (auto handler : handler_list_)
     handler->OnAccept(remote_ip, remote_port, local_port, net_id);
 }
@@ -222,8 +253,12 @@ void NetworkManager::OnConnect(IPAddr remote_ip, Port remote_port, Port local_po
     }
   }
 
+  std::stringstream ss;
+  ss << "NetworkManager::OnConnect remote = " << remote_ip << ":" << remote_port << ", local_port = " << local_port << ", net_id = " << net_id;
+  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+
   for (auto handler : handler_list_)
-    handler->OnConnect(remote_ip, remote_port, true, net_id);
+    handler->OnConnect(remote_ip, remote_port, local_port, true, net_id);
 }
 
 void NetworkManager::OnRecv(IPAddr ip, Port port, Port local_port, char *data, int length)
@@ -242,25 +277,31 @@ void NetworkManager::OnDisconnect(IPAddr ip, Port port, Port local_port)
   if (net_id_it == endpoint_to_net_id_map_.end())
     return;
 
-  net_id_to_endpoint_map_.erase(net_id_it->second);
+  NetworkID net_id = net_id_it->second;
+
+  net_id_to_endpoint_map_.erase(net_id);
   endpoint_to_net_id_map_.erase(net_id_it);
 
-  auto accept_it = net_id_to_accept_.find(net_id_it->second);
+  auto accept_it = net_id_to_accept_.find(net_id);
   if (accept_it != net_id_to_accept_.end())
   {
     net_id_to_accept_.erase(accept_it);
   }
 
-  auto connect_it = net_id_to_connect_.find(net_id_it->second);
+  auto connect_it = net_id_to_connect_.find(net_id);
   if (connect_it != net_id_to_connect_.end())
   {
     net_id_to_connect_.erase(connect_it);
   }
 
-  for (auto handler : handler_list_)
-    handler->OnDisconnect(net_id_it->second);
+  std::stringstream ss;
+  ss << "NetworkManager::OnDisconnect net_id = " << net_id;
+  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
 
-  free_net_id_list_.push(net_id_it->second);
+  for (auto handler : handler_list_)
+    handler->OnDisconnect(net_id);
+
+  free_net_id_list_.push(net_id);
 }
 
 void NetworkManager::SendRaw(NetworkID net_id, const char *data, int length)
@@ -268,7 +309,7 @@ void NetworkManager::SendRaw(NetworkID net_id, const char *data, int length)
 	auto endpoint_it = net_id_to_endpoint_map_.find(net_id);
 	if (endpoint_it == net_id_to_endpoint_map_.end())
 		return;
-
+	
 	auto accept_it = net_id_to_accept_.find(net_id);
 	if (accept_it != net_id_to_accept_.end())
 		accept_it->second->Write(endpoint_it->second.remote_ip_addr, endpoint_it->second.remote_port, data, length);
@@ -282,6 +323,10 @@ void NetworkManager::OnRecvPackage(NetworkID net_id, char *data, int length)
 {
 	if (net_id <= 0 || nullptr == data || length <= 0)
 		return;
+
+	std::stringstream ss;
+	ss << "NetworkManager::OnRecvPackage net_id = " << net_id << ", data length = " << length;
+	DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
 
 	for (auto handler : handler_list_)
 		handler->OnRecv(net_id, data, length);

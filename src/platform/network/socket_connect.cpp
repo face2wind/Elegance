@@ -1,6 +1,8 @@
 #include "socket_connect.hpp"
 
-#include <iostream>
+#include "common/debug_message.hpp"
+
+#include <sstream>
 
 namespace face2wind {
 
@@ -50,8 +52,6 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
   getsockname(local_sock_, (struct sockaddr*)&connected_addr, &connected_addr_len);
   local_port_ = ntohs(connected_addr.sin_port);
 
-  local_port_ = connected_addr.
-
   // set nonblocking
   int opts = fcntl(local_sock_, F_GETFL);
   if (opts < 0)
@@ -68,7 +68,7 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
   remote_port_ = port;
   
   if (nullptr != handler_)
-    handler_->OnConnect(remote_ip_addr_, remote_port_);
+    handler_->OnConnect(remote_ip_addr_, remote_port_, local_port_);
   
   struct epoll_event event;
   event.events = EPOLLIN | EPOLLET | EPOLLHUP | EPOLLERR;
@@ -82,7 +82,10 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
   running_ = true;
   while(running_)
   {
-    //std::cout<<"[connect] start epoll wait ..."<<std::endl;
+	  std::stringstream ss;
+	  ss << "SocketConnect::Connect start epoll wait";
+	  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+
     fd_count = epoll_wait(epoll_fd_, epoll_event_list_, MAX_EPOLL_EVENTS, -1);
     if (-1 == fd_count)
       return false;
@@ -105,7 +108,7 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
           {
             buff_[read_size] = '\0';
             if (nullptr != handler_)
-              handler_->OnRecv(remote_ip_addr_, remote_port_, buff_, read_size);
+              handler_->OnRecv(remote_ip_addr_, remote_port_, local_port_, buff_, read_size);
             
             read_size = read(epoll_event_list_[index].data.fd, buff_, MAX_SOCKET_MSG_BUFF_LENGTH);
           }
@@ -122,7 +125,7 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
           socket_error = true;
           
           if (nullptr != handler_)
-            handler_->OnDisconnect(remote_ip_addr_, remote_port_);
+			handler_->OnDisconnect(remote_ip_addr_, remote_port_, local_port_);
         }
       }
       else
@@ -137,7 +140,7 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
         socket_error = true;
         
         if (nullptr != handler_)
-          handler_->OnDisconnect(remote_ip_addr_, remote_port_);
+          handler_->OnDisconnect(remote_ip_addr_, remote_port_, local_port_);
       }
     }
     
@@ -172,14 +175,18 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
   //初始化winsock 2.2版本  
   if ((Ret = WSAStartup(MAKEWORD(2, 2), &wsaData)) != 0)
   {
-    std::cout<<"Error:WSAStartup failed with "<<Ret<<std::endl;
+	  std::stringstream ss;
+	  ss << "SocketConnect::Connect Error:WSAStartup failed with " << Ret;
+	  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
     return false;
   }
 
   //创建一个新的套接字来建立客户机连接  
   if ((local_sock_ = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == INVALID_SOCKET)
   {
-    printf("ERROR:socket failed with %d/n", WSAGetLastError());
+	  std::stringstream ss;
+	  ss << "SocketConnect::Connect Error:socket failed with " << WSAGetLastError();
+	  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
     WSACleanup();
     return false;
   }
@@ -191,7 +198,9 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
 
   if (SOCKET_ERROR == connect(local_sock_, (SOCKADDR *)&ServerAddr, sizeof(ServerAddr)))
   {
-    std::cout<<"connect failed with "<<WSAGetLastError()<<std::endl;
+	  std::stringstream ss;
+	  ss << "SocketConnect::Connect Error:connect failed with " << WSAGetLastError();
+	  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
     closesocket(local_sock_);
     WSACleanup();
     return false;
@@ -241,7 +250,10 @@ bool SocketConnect::Write(const char *data, int length)
   //发送数据  
   if (SOCKET_ERROR == send(local_sock_, data, length, 0))
   {
-    printf("send failed with %d/n", WSAGetLastError());
+	  std::stringstream ss;
+	  ss << "SocketConnect::Write Error:send failed with " << WSAGetLastError();
+	  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+
     running_ = false;
     return false;
   }

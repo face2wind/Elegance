@@ -1,6 +1,9 @@
 #include "socket_def.hpp"
 #include "socket_accept.hpp"
 
+#include "common/debug_message.hpp"
+
+#include <sstream>
 
 namespace face2wind {
 
@@ -57,10 +60,16 @@ bool SocketAccept::Listen(Port port)
   int fd_count = 0;
   socklen_t addr_in_len = (socklen_t)sizeof(struct sockaddr_in);
   struct sockaddr_in remote_addr;
+
+  local_port_ = port;
+  listening_ = true;
   
   while(true)
   {
-    //std::cout<<"[server] start epoll wait ..."<<std::endl;
+	  std::stringstream ss;
+	  ss << "SocketAccept::Listen start epoll wait";
+	  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+
     fd_count = epoll_wait(epoll_fd_, epoll_event_list_, MAX_EPOLL_EVENTS, -1);
     if (-1 == fd_count)
       return false;
@@ -86,14 +95,17 @@ bool SocketAccept::Listen(Port port)
         if (-1 == epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, cur_sock, &event))
           return false;
 
-        Endpoint cur_endpoint(inet_ntoa(remote_addr.sin_addr), remote_addr.sin_port);
+        Endpoint cur_endpoint(inet_ntoa(remote_addr.sin_addr), remote_addr.sin_port, local_port_);
         
         sock_endpoint_map_[cur_sock] = cur_endpoint;
         endpoint_sock_map_[cur_endpoint] = cur_sock;
-        
-        //std::cout<<"[server] accept succ from - "<<cur_endpoint.ip_addr<<":"<<cur_endpoint.port<<std::endl;
+
+		std::stringstream ss;
+		ss << "SocketAccept::Listen accept succ from - " << cur_endpoint.remote_ip_addr << ":" << cur_endpoint.remote_port;
+		DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+
         if (nullptr != handler_)
-          handler_->OnAccept(cur_endpoint.remote_ip_addr, cur_endpoint.remote_port);
+          handler_->OnAccept(cur_endpoint.remote_ip_addr, cur_endpoint.remote_port, cur_endpoint.local_port);
       }
       else if (epoll_event_list_[index].events & EPOLLOUT)
       {
@@ -110,7 +122,7 @@ bool SocketAccept::Listen(Port port)
           {
             buff_[read_size] = '\0';
             if (nullptr != handler_ && endpoint_it != sock_endpoint_map_.end())
-              handler_->OnRecv(endpoint_it->second.ip_addr, endpoint_it->second.port, buff_, read_size);
+              handler_->OnRecv(endpoint_it->second.remote_ip_addr, endpoint_it->second.remote_port, endpoint_it->second.local_port, buff_, read_size);
             
             read_size = read(epoll_event_list_[index].data.fd, buff_, MAX_SOCKET_MSG_BUFF_LENGTH);
           }
@@ -126,8 +138,8 @@ bool SocketAccept::Listen(Port port)
           
           close(epoll_event_list_[index].data.fd);
           
-          if (nullptr != handler_ && endpoint_it != sock_endpoint_map_.end())
-            handler_->OnDisconnect(endpoint_it->second.ip_addr, endpoint_it->second.port);
+		  if (nullptr != handler_ && endpoint_it != sock_endpoint_map_.end())
+			  handler_->OnDisconnect(endpoint_it->second.remote_ip_addr, endpoint_it->second.remote_port, endpoint_it->second.local_port);
           if (endpoint_it != sock_endpoint_map_.end())
           {
             endpoint_sock_map_.erase(endpoint_it->second);
@@ -146,8 +158,8 @@ bool SocketAccept::Listen(Port port)
         close(epoll_event_list_[index].data.fd);
         
         auto endpoint_it = sock_endpoint_map_.find(epoll_event_list_[index].data.fd);
-        if (nullptr != handler_ && endpoint_it != sock_endpoint_map_.end())
-          handler_->OnDisconnect(endpoint_it->second.ip_addr, endpoint_it->second.port);
+		if (nullptr != handler_ && endpoint_it != sock_endpoint_map_.end())
+			handler_->OnDisconnect(endpoint_it->second.remote_ip_addr, endpoint_it->second.remote_port, endpoint_it->second.local_port);
         if (endpoint_it != sock_endpoint_map_.end())
         {
           endpoint_sock_map_.erase(endpoint_it->second);
@@ -157,7 +169,8 @@ bool SocketAccept::Listen(Port port)
     }
   }
 
-  listening_ = true;  
+  local_port_ = 0;
+  listening_ = false;  
   return true;
 }
 
@@ -166,7 +179,7 @@ bool SocketAccept::Write(IPAddr ip, Port port, const char *data, int length)
   if (nullptr == data || length <= 0)
     return false;
   
-  auto sock_it = endpoint_sock_map_.find(Endpoint(ip, port));
+  auto sock_it = endpoint_sock_map_.find(Endpoint(ip, port, local_port_));
   if (sock_it == endpoint_sock_map_.end())
     return false;
 
@@ -179,7 +192,7 @@ bool SocketAccept::Write(IPAddr ip, Port port, const char *data, int length)
 
 bool SocketAccept::Disconnect(IPAddr ip, Port port)
 {
-  auto sock_it = endpoint_sock_map_.find(Endpoint(ip, port));
+  auto sock_it = endpoint_sock_map_.find(Endpoint(ip, port, local_port_));
   if (sock_it == endpoint_sock_map_.end())
     return false;
 
@@ -207,8 +220,11 @@ DWORD WINAPI SocketAccept::ServerWorkThread(LPVOID CompletionPortID)
     bool get_queue_error = false;
     if (GetQueuedCompletionStatus(complationPort, &bytesTransferred, (PULONG_PTR)&pHandleData, (LPOVERLAPPED *)&pIoData, INFINITE) == 0)
     {
-      get_queue_error = true;
-      //std::cout << "GetQueuedCompletionStatus failed. Error:" << GetLastError() << std::endl;
+		get_queue_error = true;
+
+		std::stringstream ss;
+		ss << "SocketAccept::ServerWorkThread GetQueuedCompletionStatus failed. Error:" << GetLastError();
+		DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
     }
 	
     if (nullptr == pIoData || nullptr == pHandleData)
@@ -233,8 +249,10 @@ DWORD WINAPI SocketAccept::ServerWorkThread(LPVOID CompletionPortID)
       if (bytesTransferred != 0 || !get_queue_error) // socket has not been close
       {
         if (CloseHandle((HANDLE)pHandleData->socket) == SOCKET_ERROR)
-        {
-          std::cout << "Close socket failed. Error:" << GetLastError() << std::endl;
+		{
+			std::stringstream ss;
+			ss << "SocketAccept::ServerWorkThread Close socket failed. Error:" << GetLastError();
+			DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
           return 0;
         }
       }
@@ -266,8 +284,10 @@ DWORD WINAPI SocketAccept::ServerWorkThread(LPVOID CompletionPortID)
             if (WSASend(pHandleData->socket, &(new_pio_data_ptr->databuff), 1, &sendBytes, 0, &(new_pio_data_ptr->overlapped), NULL) == SOCKET_ERROR)
             {
               if (WSAGetLastError() != ERROR_IO_PENDING)
-              {
-                std::cout << "WSASend() failed. Error:" << GetLastError() << std::endl;
+			  {
+				  std::stringstream ss;
+				  ss << "SocketAccept::ServerWorkThread WSASend() failed. Error:" << GetLastError();
+				  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
                 return 0;
               }
               else
@@ -290,12 +310,13 @@ DWORD WINAPI SocketAccept::ServerWorkThread(LPVOID CompletionPortID)
         if (WSASend(pHandleData->socket, &(pIoData->databuff), 1, &sendBytes, 0, &(pIoData->overlapped), NULL) == SOCKET_ERROR)
         {
           if (WSAGetLastError() != ERROR_IO_PENDING)
-          {
-            std::cout << "WSASend() failed. Error:" << GetLastError() << std::endl;
+		  {
+			  std::stringstream ss;
+			  ss << "SocketAccept::ServerWorkThread WSASend() failed. Error:" << GetLastError();
+			  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
             return 0;
           }
         }
-        std::cout << "Send " << pIoData->buffer << std::endl;
       }
     }
     else if (pIoData->type == IOCPHandleType::RECV)
@@ -320,8 +341,10 @@ DWORD WINAPI SocketAccept::ServerWorkThread(LPVOID CompletionPortID)
       if (WSARecv(pHandleData->socket, &(pIoData->databuff), 1, &recvBytes, &flags, &(pIoData->overlapped), NULL) == SOCKET_ERROR)
       {
         if (WSAGetLastError() != ERROR_IO_PENDING)
-        {
-          std::cout << "WSARecv() failed. Error:" << GetLastError() << std::endl;
+		{
+			std::stringstream ss;
+			ss << "SocketAccept::ServerWorkThread WSARecv() failed. Error:" << GetLastError();
+			DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
           return false;
         }
       }
@@ -348,14 +371,18 @@ bool SocketAccept::Listen(Port port)
   DWORD ret;
   if (ret = WSAStartup(0x0202, &wsaData) != 0)
   {
-    std::cout << "WSAStartup failed. Error:" << ret << std::endl;
+	  std::stringstream ss;
+	  ss << "SocketAccept::Listen WSAStartup failed. Error:" << ret;
+	  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
     return false;
   }
 
   completionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
   if (NULL == completionPort)
   {
-    std::cout << "CreateIoCompletionPort failed. Error:" << GetLastError() << std::endl;
+	  std::stringstream ss;
+	  ss << "SocketAccept::Listen CreateIoCompletionPort failed. Error:" << GetLastError();
+	  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
     return false;
   }
 
@@ -368,8 +395,10 @@ bool SocketAccept::Listen(Port port)
     HANDLE threadHandle;
     threadHandle = CreateThread(NULL, 0, SocketAccept::ServerWorkThread, completionPort, 0, &threadID);
     if (NULL == threadHandle)
-    {
-      std::cout << "CreateThread failed. Error:" << GetLastError() << std::endl;
+	{
+		std::stringstream ss;
+		ss << "SocketAccept::Listen CreateThread failed. Error:" << GetLastError();
+		DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
       return false;
     }
 
@@ -380,7 +409,9 @@ bool SocketAccept::Listen(Port port)
   SOCKET listenSocket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
   if (listenSocket == INVALID_SOCKET)
   {
-    std::cout << " WSASocket( listenSocket ) failed. Error:" << GetLastError() << std::endl;
+	  std::stringstream ss;
+	  ss << "SocketAccept::Listen WSASocket failed. Error:" << GetLastError();
+	  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
     return false;
   }
 
@@ -392,17 +423,22 @@ bool SocketAccept::Listen(Port port)
   // 绑定监听端口
   if (bind(listenSocket, (PSOCKADDR)&internetAddr, sizeof(internetAddr)) == SOCKET_ERROR)
   {
-    std::cout << "Bind failed. Error:" << GetLastError() << std::endl;
+	  std::stringstream ss;
+	  ss << "SocketAccept::Listen Bind failed. Error:" << GetLastError();
+	  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
     return false;
   }
 
   if (listen(listenSocket, MAX_BACKLOG) == SOCKET_ERROR)
   {
-    std::cout << "listen failed. Error:" << GetLastError() << std::endl;
+	  std::stringstream ss;
+	  ss << "SocketAccept::Listen listen failed. Error:" << GetLastError();
+	  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
     return false;
   }
 
-  local_port = port;
+  local_port_ = port;
+  listening_ = true;
 
   // 开始死循环，处理数据
   while (true)
@@ -412,29 +448,37 @@ bool SocketAccept::Listen(Port port)
     int addr_size = sizeof(client_sock_addr);
     acceptSocket = WSAAccept(listenSocket, (sockaddr *)&client_sock_addr, &addr_size, NULL, 0);
     if (acceptSocket == SOCKET_ERROR)
-    {
-      std::cout << "WSAAccept failed. Error:" << GetLastError() << std::endl;
+	{
+		std::stringstream ss;
+		ss << "SocketAccept::Listen WSAAccept failed. Error:" << GetLastError();
+		DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
       return false;
     }
 
     pHandleData = (LPPER_HANDLE_DATA)GlobalAlloc(GPTR, sizeof(PER_HANDLE_DATA));
     if (NULL == pHandleData)
-    {
-      std::cout << "GlobalAlloc( HandleData ) failed. Error:" << GetLastError() << std::endl;
+	{
+		std::stringstream ss;
+		ss << "SocketAccept::Listen GlobalAlloc(pHandleData) failed. Error:" << GetLastError();
+		DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
       return false;
     }
 
     pHandleData->socket = acceptSocket;
     if (NULL == CreateIoCompletionPort((HANDLE)acceptSocket, completionPort, (ULONG_PTR)pHandleData, 0))
-    {
-      std::cout << "CreateIoCompletionPort failed. Error:" << GetLastError() << std::endl;
+	{
+		std::stringstream ss;
+		ss << "SocketAccept::Listen CreateIoCompletionPort failed. Error:" << GetLastError();
+		DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
       return false;
     }
 
     pIoData = (LPPER_IO_OPERATION_DATA)GlobalAlloc(GPTR, sizeof(PER_IO_OPERATEION_DATA));
     if (NULL == pIoData)
-    {
-      std::cout << "GlobalAlloc( IoData ) failed. Error:" << GetLastError() << std::endl;
+	{
+		std::stringstream ss;
+		ss << "SocketAccept::Listen GlobalAlloc(IoData) failed. Error:" << GetLastError();
+		DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
       return false;
     }
 
@@ -449,8 +493,10 @@ bool SocketAccept::Listen(Port port)
     if (WSARecv(acceptSocket, &(pIoData->databuff), 1, &recvBytes, &flags, &(pIoData->overlapped), NULL) == SOCKET_ERROR)
     {
       if (WSAGetLastError() != ERROR_IO_PENDING)
-      {
-        std::cout << "WSARecv() failed. Error:" << GetLastError() << std::endl;
+	  {
+		  std::stringstream ss;
+		  ss << "SocketAccept::Listen WSARecv failed. Error:" << GetLastError();
+		  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
         return false;
       }
       else
@@ -472,18 +518,31 @@ bool SocketAccept::Listen(Port port)
       handler_->OnAccept(cur_endpoint.remote_ip_addr, cur_endpoint.remote_port, cur_endpoint.local_port);
   }
 
-  local_port = 0;
+  local_port_ = 0;
   CloseHandle(completionPort);
-  listening_ = true;
+  listening_ = false;
   return true;
 }
 
 bool SocketAccept::Write(IPAddr ip, Port port, const char *data, int length)
 {
-  if (nullptr == data || length <= 0 || length > MAX_SOCKET_MSG_BUFF_LENGTH)
-    return false;
+	if (nullptr == data || length <= 0)
+	{
+		std::stringstream ss;
+		ss << "SocketAccept::Write Error: data null or length is 0";
+		DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+		return false;
+	}
 
-  auto sock_it = endpoint_sock_map_.find(Endpoint(ip, port, local_port));
+	if (length > MAX_SOCKET_MSG_BUFF_LENGTH)
+	{
+		std::stringstream ss;
+		ss << "SocketAccept::Write Error : length(" << length<<") > " << MAX_SOCKET_MSG_BUFF_LENGTH;
+		DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+		return false;
+	}
+
+  auto sock_it = endpoint_sock_map_.find(Endpoint(ip, port, local_port_));
   if (sock_it == endpoint_sock_map_.end())
     return false;
 
@@ -507,8 +566,10 @@ bool SocketAccept::Write(IPAddr ip, Port port, const char *data, int length)
   else if (WSASend(cur_sock, &(pIoData->databuff), 1, &recvBytes, 0, &(pIoData->overlapped), NULL) == SOCKET_ERROR)
   {
     if (WSAGetLastError() != ERROR_IO_PENDING)
-    {
-      std::cout << "WSASend() failed. Error:" << GetLastError() << std::endl;
+	{
+		std::stringstream ss;
+		ss << "SocketAccept::Write WSASend() failed.Error:" << GetLastError();
+		DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
       return false;
     }
     else
@@ -523,7 +584,7 @@ bool SocketAccept::Write(IPAddr ip, Port port, const char *data, int length)
 
 bool SocketAccept::Disconnect(IPAddr ip, Port port)
 {
-  auto sock_it = endpoint_sock_map_.find(Endpoint(ip, port, local_port));
+  auto sock_it = endpoint_sock_map_.find(Endpoint(ip, port, local_port_));
   if (sock_it == endpoint_sock_map_.end())
     return false;
 
@@ -537,7 +598,7 @@ bool SocketAccept::Disconnect(IPAddr ip, Port port)
 
 bool SocketAccept::CheckOnHandle(IPAddr ip, Port port)
 {
-	return endpoint_sock_map_.find(Endpoint(ip, port, local_port)) != endpoint_sock_map_.end();
+	return endpoint_sock_map_.find(Endpoint(ip, port, local_port_)) != endpoint_sock_map_.end();
 }
 
 }

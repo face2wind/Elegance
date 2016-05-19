@@ -1,65 +1,13 @@
 #include "rpc_manager.hpp"
 #include "network/network_manager.hpp"
-#include <sstream>
 #include "common/debug_message.hpp"
+
+#include <sstream>
+#include <cstring>
+#include <limits.h>
 
 namespace face2wind
 {
-
-void RPCSession::OnRecv(const char *data, int length)
-{
-  if (nullptr == data || length <= static_cast<int>(sizeof(RPCMessageHeader)))
-    return;
-
-  RPCMessageHeader *head = (RPCMessageHeader *)data;
-  if (RPC_MESSAGE_TYPE_RESPONSE == head->type)
-  {
-    std::map<int, IRpcRequest*>::iterator request_it = m_request_list.find(head->message_id);
-    if (request_it != m_request_list.end())
-    {
-      IRpcRequest *request = request_it->second;
-      if (NULL != request)
-      {
-        request->OnCallBack(data + sizeof(RPCMessageHeader), length - sizeof(RPCMessageHeader));
-        delete request;
-      }
-
-      m_request_list.erase(request_it);
-			m_free_request_id_stack.push(head->message_id);
-    }
-  }
-  else if (RPC_MESSAGE_TYPE_REQUEST == head->type)
-  {
-    for (std::set<IRpcHandler*>::iterator it = m_handler_list.begin(); it != m_handler_list.end(); ++it)
-    {
-      int result_data_len(0);
-      char *result_data = m_message_buffer + sizeof(RPCMessageHeader);
-			
-      int handle_result = (*it)->HandleCall(data + sizeof(RPCMessageHeader), length - sizeof(RPCMessageHeader), result_data, result_data_len);
-      if (handle_result != 0)
-        continue;
-
-      if (NULL == result_data || result_data_len <= 0)
-        continue;
-
-      int total_send_len = result_data_len + sizeof(RPCMessageHeader);
-      if (total_send_len >= RPC_SESSION_NETWORK_MESSAGE_MAX_LEN)
-        continue;
-
-      RPCMessageHeader *receive_head = (RPCMessageHeader *)data;
-
-      m_send_message_lock.Lock();
-
-      RPCMessageHeader *send_head = (RPCMessageHeader *)m_message_buffer;
-      send_head->type = RPC_MESSAGE_TYPE_RESPONSE;
-      send_head->message_id = receive_head->message_id;
-      //memcpy(m_message_buffer + sizeof(RPCMessageHeader), result_data, result_data_len);
-      m_network->Send(m_network_id, m_message_buffer, total_send_len);
-
-      m_send_message_lock.Unlock();
-    }
-  }
-}
 
 void RPCSession::RegisterHandler(IRpcHandler * handler)
 {
@@ -85,7 +33,7 @@ void RPCSession::AsyncCall(IRpcRequest *req, const char *data, int length)
   {
     std::stringstream ss;
     ss << "RPCSession::AsyncCall, total data length is more than "<< RPC_SESSION_NETWORK_MESSAGE_MAX_LEN << ", request give up.";
-    DebugMessage::GetInstance()->ShowMessage(DebugMessageType::DEBUG_MESSAGE_TYPE_BASE_NETWORK, ss.str());
+    DebugMessage::GetInstance().ShowMessage(DebugMessageType::REMOTE_PROCEDURE_CALL, ss.str());
         
     delete req;
     return;
@@ -100,7 +48,7 @@ void RPCSession::AsyncCall(IRpcRequest *req, const char *data, int length)
   head->message_id = request_id;
   memcpy(m_message_buffer + sizeof(RPCMessageHeader), data, length);
 
-  m_network->Send(m_network_id, m_message_buffer, total_len);
+  m_network_mgr->Send(m_network_id, m_message_buffer, total_len);
   m_request_list[request_id] = req;
 
   m_send_message_lock.Unlock();
@@ -118,6 +66,7 @@ int RPCSession::GetRequestID()
 	if (m_free_request_id_stack.empty())
 	{
 		new_request_id = m_max_request_id ++;
+		m_max_request_id %= SHRT_MAX;
 	}
 	else
 	{
@@ -126,6 +75,64 @@ int RPCSession::GetRequestID()
 	}
 
   return new_request_id;
+}
+
+void RPCSession::OnRecv(const char *data, int length)
+{
+	if (nullptr == data || length <= static_cast<int>(sizeof(RPCMessageHeader)))
+		return;
+
+	RPCMessageHeader *head = (RPCMessageHeader *)data;
+	if (RPC_MESSAGE_TYPE_RESPONSE == head->type)
+	{
+		std::map<int, IRpcRequest*>::iterator request_it = m_request_list.find(head->message_id);
+		if (request_it != m_request_list.end())
+		{
+			IRpcRequest *request = request_it->second;
+			if (NULL != request)
+			{
+				request->OnCallBack(data + sizeof(RPCMessageHeader), length - sizeof(RPCMessageHeader));
+				delete request;
+			}
+
+			m_request_list.erase(request_it);
+			m_free_request_id_stack.push(head->message_id);
+		}
+	}
+	else if (RPC_MESSAGE_TYPE_REQUEST == head->type)
+	{
+		for (std::set<IRpcHandler*>::iterator it = m_handler_list.begin(); it != m_handler_list.end(); ++it)
+		{
+			int result_data_len = RPC_SESSION_NETWORK_MESSAGE_MAX_LEN - sizeof(RPCMessageHeader);
+			char *result_data = m_message_buffer + sizeof(RPCMessageHeader);
+
+			m_send_message_lock.Lock();
+
+			do
+			{
+				int handle_result = (*it)->HandleCall(data + sizeof(RPCMessageHeader), length - sizeof(RPCMessageHeader), result_data, result_data_len);
+				if (handle_result != 0)
+					break;
+
+				if (NULL == result_data || result_data_len <= 0)
+					break;
+
+				int total_send_len = result_data_len + sizeof(RPCMessageHeader);
+				if (total_send_len >= RPC_SESSION_NETWORK_MESSAGE_MAX_LEN)
+					break;
+
+				RPCMessageHeader *receive_head = (RPCMessageHeader *)data;
+
+				RPCMessageHeader *send_head = (RPCMessageHeader *)m_message_buffer;
+				send_head->type = RPC_MESSAGE_TYPE_RESPONSE;
+				send_head->message_id = receive_head->message_id;
+				//memcpy(m_message_buffer + sizeof(RPCMessageHeader), result_data, result_data_len);
+				m_network_mgr->Send(m_network_id, m_message_buffer, total_send_len);
+			} while (false);
+
+			m_send_message_lock.Unlock();
+		}
+	}
 }
 
 RPCManager::RPCManager(IRpcConnectHandler *handler, NetworkManager *network_mgr) : handler_(handler), network_mgr_(network_mgr)
@@ -164,7 +171,7 @@ void RPCManager::OnActiveNetwork(NetworkID network_id, Port listen_port, IPAddr 
   std::string session_id = CalculateRPCSessionKey(listen_port, remote_ip_addr, remote_port);
   if (session_map_.find(session_id) == session_map_.end())
   {
-    session_map_[session_id].SetData(remote_ip_addr, remote_port, network_mgr_, network_id);
+    session_map_[session_id].SetData(remote_ip_addr, remote_port, listen_port, network_mgr_, network_id);
   }
 
   session_id_2_network_id_map_[session_id] = network_id;
@@ -222,7 +229,7 @@ void RPCManager::OnAccept(IPAddr remote_ip_addr, Port remote_port, Port local_po
 { 
   if (listen_port_2_key_map_.find(local_port) != listen_port_2_key_map_.end())
   {
-    network_id_2_key_map_[local_port] = listen_port_2_key_map_[local_port];
+    network_id_2_key_map_[net_id] = listen_port_2_key_map_[local_port];
 
     if (uncheck_rpc_info_map_.find(net_id) == uncheck_rpc_info_map_.end())
     {
@@ -244,7 +251,10 @@ void RPCManager::OnRecv(NetworkID network_id, const char *data, int length)
     RPCMessageCheckKeyCS *check_key_cs = (RPCMessageCheckKeyCS*)data;
     std::string receive_key(check_key_cs->key_str);
 
-    //std::cout << "receive key check : "<< receive_key <<" == " << m_network_id_2_key_map[network_id] << std::endl;
+	std::stringstream ss;
+	ss << "receive key check : " << receive_key << " == " << network_id_2_key_map_[network_id];
+	DebugMessage::GetInstance().ShowMessage(DebugMessageType::REMOTE_PROCEDURE_CALL, ss.str());
+
     if (receive_key == network_id_2_key_map_[network_id]) // key match
     {
       static RPCMessageCheckKeyResponseSC check_key_response;
@@ -264,7 +274,11 @@ void RPCManager::OnRecv(NetworkID network_id, const char *data, int length)
   else  if (RPC_MESSAGE_TYPE_CHECK_KEY_RESPONSE == *rpc_message_type)
   {
     RPCMessageCheckKeyResponseSC *respon_sc = (RPCMessageCheckKeyResponseSC*)data;
-    //std::cout << "receive key check result : " << respon_sc->response << std::endl;
+
+	std::stringstream ss;
+	ss << "receive key check result : " << respon_sc->response;
+	DebugMessage::GetInstance().ShowMessage(DebugMessageType::REMOTE_PROCEDURE_CALL, ss.str());
+
     if (1 == respon_sc->response)
     {
       UncheckRPCInfo &uncheck_info = uncheck_rpc_info_map_[network_id];

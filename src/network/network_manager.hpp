@@ -21,8 +21,8 @@ class INetworkHandler
 {
  public:
   virtual void OnListenFail(Port port) = 0;
-  virtual void OnAccept(IPAddr ip, Port port, Port local_port, NetworkID net_id = 0) = 0;
-  virtual void OnConnect(IPAddr ip, Port port, Port local_port, bool success, NetworkID net_id = 0) = 0;
+  virtual void OnAccept(IPAddr ip, Port port, Port local_port, NetworkID net_id) = 0;
+  virtual void OnConnect(IPAddr ip, Port port, Port local_port, bool success, NetworkID net_id) = 0;
   
   virtual void OnRecv(NetworkID net_id, const char *data, int length) = 0;
   virtual void OnDisconnect(NetworkID net_id) = 0;

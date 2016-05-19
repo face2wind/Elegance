@@ -78,15 +78,10 @@ class IRpcHandler
 class RPCSession
 {
  public:
-  RPCSession() : m_remote_ip(""), m_remote_port(0), m_network(nullptr), m_network_id(0), m_cur_has_connected(false), m_max_request_id(0) {}
-  RPCSession(const IPAddr &remote_ip, Port remote_port, NetworkManager *network, NetworkID network_id)
-      : m_remote_ip(remote_ip), m_remote_port(remote_port), m_network(network), m_network_id(network_id), m_cur_has_connected(false), m_max_request_id(0) {}
+  RPCSession() : m_network_mgr(nullptr), m_network_id(0), m_cur_has_connected(false), m_max_request_id(0) {}
   virtual ~RPCSession() {}
 
-  const IPAddr &GetRemoteIp() { return m_remote_ip; }
-  const Port &GetRemotePort() { return m_remote_port; }
-
-  void OnRecv(const char *data, int length);
+  const Endpoint &GetEndpoint() { return endpoint_; }
 
   void RegisterHandler(IRpcHandler *handler);
 
@@ -96,20 +91,23 @@ class RPCSession
   friend class RPCManager;
 
  protected:
-  void SetData(const IPAddr &remote_ip, Port remote_port, NetworkManager *network, NetworkID network_id)
+  void OnRecv(const char *data, int length);
+
+  void SetData(const IPAddr &remote_ip, Port remote_port, Port local_port, NetworkManager *network, NetworkID network_id)
   {
-    m_remote_ip = remote_ip;
-    m_remote_port = remote_port;
-    m_network = network;
+	  endpoint_.remote_ip_addr = remote_ip;
+	  endpoint_.remote_port = remote_port;
+	  endpoint_.local_port = local_port;
+
+    m_network_mgr = network;
     m_network_id = network_id;
   }
 
   int GetRequestID();
 
  protected:
-  IPAddr m_remote_ip;
-  Port m_remote_port;
-  NetworkManager *m_network;
+	 Endpoint endpoint_;
+  NetworkManager *m_network_mgr;
   NetworkID m_network_id;
   bool m_cur_has_connected;
 
