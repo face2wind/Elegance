@@ -11,9 +11,9 @@ namespace face2wind
 
 void RPCSession::RegisterHandler(IRpcHandler * handler)
 {
-  if (nullptr != handler && m_handler_list.find(handler) == m_handler_list.end())
+  if (nullptr != handler && handler_list_.find(handler) == handler_list_.end())
   {
-    m_handler_list.insert(handler);
+    handler_list_.insert(handler);
   }
 }
 
@@ -41,17 +41,20 @@ void RPCSession::AsyncCall(IRpcRequest *req, const char *data, int length)
 
   int request_id = this->GetRequestID();
 
-  m_send_message_lock.Lock();
+  send_message_lock_.Lock();
 
-  RPCMessageHeader *head = (RPCMessageHeader *)m_message_buffer;
+  RPCMessageHeader *head = (RPCMessageHeader *)message_buffer_;
   head->type = RPC_MESSAGE_TYPE_REQUEST;
   head->message_id = request_id;
-  memcpy(m_message_buffer + sizeof(RPCMessageHeader), data, length);
+  memcpy(message_buffer_ + sizeof(RPCMessageHeader), data, length);
 
-  m_network_mgr->Send(m_network_id, m_message_buffer, total_len);
-  m_request_list[request_id] = req;
+  network_mgr_->Send(network_id_, message_buffer_, total_len);
 
-  m_send_message_lock.Unlock();
+  request_lock_.Lock();
+  request_list_[request_id] = req;
+  request_lock_.Unlock();
+
+  send_message_lock_.Unlock();
 }
 
 const char * RPCSession::SyncCall(const char * data, int length, int & return_length)
@@ -63,16 +66,20 @@ int RPCSession::GetRequestID()
 {
 	int new_request_id(0);
 
-	if (m_free_request_id_stack.empty())
+	free_request_id_lock_.Lock();
+
+	if (free_request_id_stack_.empty())
 	{
-		new_request_id = m_max_request_id ++;
-		m_max_request_id %= SHRT_MAX;
+		new_request_id = next_request_id_ ++;
+		next_request_id_ %= SHRT_MAX;
 	}
 	else
 	{
-		new_request_id = m_free_request_id_stack.top();
-		m_free_request_id_stack.pop();
+		new_request_id = free_request_id_stack_.top();
+		free_request_id_stack_.pop();
 	}
+
+	free_request_id_lock_.Unlock();
 
   return new_request_id;
 }
@@ -85,8 +92,9 @@ void RPCSession::OnRecv(const char *data, int length)
 	RPCMessageHeader *head = (RPCMessageHeader *)data;
 	if (RPC_MESSAGE_TYPE_RESPONSE == head->type)
 	{
-		std::map<int, IRpcRequest*>::iterator request_it = m_request_list.find(head->message_id);
-		if (request_it != m_request_list.end())
+		request_lock_.Lock();
+		std::map<int, IRpcRequest*>::iterator request_it = request_list_.find(head->message_id);
+		if (request_it != request_list_.end())
 		{
 			IRpcRequest *request = request_it->second;
 			if (NULL != request)
@@ -95,18 +103,22 @@ void RPCSession::OnRecv(const char *data, int length)
 				delete request;
 			}
 
-			m_request_list.erase(request_it);
-			m_free_request_id_stack.push(head->message_id);
+			request_list_.erase(request_it);
+
+			free_request_id_lock_.Lock();
+			free_request_id_stack_.push(head->message_id);
+			free_request_id_lock_.Unlock();
 		}
+		request_lock_.Unlock();
 	}
 	else if (RPC_MESSAGE_TYPE_REQUEST == head->type)
 	{
-		for (std::set<IRpcHandler*>::iterator it = m_handler_list.begin(); it != m_handler_list.end(); ++it)
+		for (std::set<IRpcHandler*>::iterator it = handler_list_.begin(); it != handler_list_.end(); ++it)
 		{
 			int result_data_len = RPC_SESSION_NETWORK_MESSAGE_MAX_LEN - sizeof(RPCMessageHeader);
-			char *result_data = m_message_buffer + sizeof(RPCMessageHeader);
+			char *result_data = message_buffer_ + sizeof(RPCMessageHeader);
 
-			m_send_message_lock.Lock();
+			send_message_lock_.Lock();
 
 			do
 			{
@@ -123,14 +135,14 @@ void RPCSession::OnRecv(const char *data, int length)
 
 				RPCMessageHeader *receive_head = (RPCMessageHeader *)data;
 
-				RPCMessageHeader *send_head = (RPCMessageHeader *)m_message_buffer;
+				RPCMessageHeader *send_head = (RPCMessageHeader *)message_buffer_;
 				send_head->type = RPC_MESSAGE_TYPE_RESPONSE;
 				send_head->message_id = receive_head->message_id;
 				//memcpy(m_message_buffer + sizeof(RPCMessageHeader), result_data, result_data_len);
-				m_network_mgr->Send(m_network_id, m_message_buffer, total_send_len);
+				network_mgr_->Send(network_id_, message_buffer_, total_send_len);
 			} while (false);
 
-			m_send_message_lock.Unlock();
+			send_message_lock_.Unlock();
 		}
 	}
 }
@@ -169,16 +181,18 @@ void RPCManager::AsyncListen(Port port, const std::string &key)
 void RPCManager::OnActiveNetwork(NetworkID network_id, Port listen_port, IPAddr remote_ip_addr, Port remote_port)
 {
   std::string session_id = CalculateRPCSessionKey(listen_port, remote_ip_addr, remote_port);
-  if (session_map_.find(session_id) == session_map_.end())
+  auto session_it = session_map_.find(session_id);
+  if (session_it == session_map_.end()) // create session
   {
-    session_map_[session_id].SetData(remote_ip_addr, remote_port, listen_port, network_mgr_, network_id);
+	  session_map_[session_id].SetData(remote_ip_addr, remote_port, listen_port, network_mgr_, network_id);
+	  session_it = session_map_.find(session_id);
   }
 
   session_id_2_network_id_map_[session_id] = network_id;
   network_id_2_session_id_map_[network_id] = session_id;
 
   if (nullptr != handler_)
-    handler_->OnSessionActive(&session_map_[session_id]);
+    handler_->OnSessionActive(&session_it->second);
 }
 
 //void RPCManager::OnConnect(bool is_success, NetworkID network_id, Port local_port, IPAddr remote_ip_addr, Port remote_port)
@@ -293,8 +307,9 @@ void RPCManager::OnRecv(NetworkID network_id, const char *data, int length)
   {
     std::string session_id = network_id_2_session_id_map_[network_id];
     
-    if (session_map_.find(session_id) != session_map_.end())
-      session_map_[session_id].OnRecv(data, length);
+	auto session_it = session_map_.find(session_id);
+    if (session_it != session_map_.end())
+		session_it->second.OnRecv(data, length);
   }
 }
 
@@ -305,8 +320,9 @@ void RPCManager::OnDisconnect(NetworkID network_id)
   session_id_2_network_id_map_.erase(session_id);
   network_id_2_session_id_map_.erase(network_id);
 
-  if (nullptr != handler_)
-    handler_->OnSessionInactive(&session_map_[session_id]);
+  auto session_it = session_map_.find(session_id);
+  if (nullptr != handler_ && session_it != session_map_.end())
+    handler_->OnSessionInactive(&session_it->second);
 }
 
 }

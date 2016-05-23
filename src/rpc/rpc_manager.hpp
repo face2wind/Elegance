@@ -78,7 +78,7 @@ class IRpcHandler
 class RPCSession
 {
  public:
-  RPCSession() : m_network_mgr(nullptr), m_network_id(0), m_cur_has_connected(false), m_max_request_id(0) {}
+  RPCSession() : network_mgr_(nullptr), network_id_(0), cur_has_connected_(false), next_request_id_(0) {}
   virtual ~RPCSession() {}
 
   const Endpoint &GetEndpoint() { return endpoint_; }
@@ -99,27 +99,29 @@ class RPCSession
 	  endpoint_.remote_port = remote_port;
 	  endpoint_.local_port = local_port;
 
-    m_network_mgr = network;
-    m_network_id = network_id;
+    network_mgr_ = network;
+    network_id_ = network_id;
   }
 
   int GetRequestID();
 
  protected:
 	 Endpoint endpoint_;
-  NetworkManager *m_network_mgr;
-  NetworkID m_network_id;
-  bool m_cur_has_connected;
+  NetworkManager *network_mgr_;
+  NetworkID network_id_;
+  bool cur_has_connected_;
 
-  char m_message_buffer[RPC_SESSION_NETWORK_MESSAGE_MAX_LEN];
-	
-  std::set<IRpcHandler*> m_handler_list;
-  std::map<int, IRpcRequest*> m_request_list;
+  Mutex send_message_lock_;
+  char message_buffer_[RPC_SESSION_NETWORK_MESSAGE_MAX_LEN];
 
-  Mutex m_send_message_lock;
+  std::set<IRpcHandler*> handler_list_;
 
-	int m_max_request_id;
-	std::stack<int> m_free_request_id_stack;
+  Mutex request_lock_;
+  std::map<int, IRpcRequest*> request_list_;
+
+  Mutex free_request_id_lock_;
+	int next_request_id_;
+	std::stack<int> free_request_id_stack_;
 };
 
 class IRpcConnectHandler

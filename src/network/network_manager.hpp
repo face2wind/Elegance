@@ -95,9 +95,11 @@ class NetworkManager : public ISocketHandler
   std::set<SocketAccept*> accept_list_;
   std::set<SocketConnect*> connect_list_;
 
+  Mutex free_net_id_lock_;
   std::stack<NetworkID> free_net_id_list_;
   int max_net_id_;
 
+  Mutex net_id_endpoint_lock_;
   std::map<NetworkID, Endpoint> net_id_to_endpoint_map_;
   std::map<Endpoint, NetworkID> endpoint_to_net_id_map_;
 
