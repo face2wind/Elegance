@@ -151,6 +151,7 @@
     <ClInclude Include="..\src\common\random.hpp" />
     <ClInclude Include="..\src\elegance.hpp" />
     <ClInclude Include="..\src\memory\flexible_buffer.hpp" />
+    <ClInclude Include="..\src\memory\mempool.hpp" />
     <ClInclude Include="..\src\network\network_manager.hpp" />
     <ClInclude Include="..\src\network\network_packer\network_packer_fixhead.hpp" />
     <ClInclude Include="..\src\network\network_packer_factory.hpp" />
@@ -169,6 +170,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\common\debug_message.cpp" />
     <ClCompile Include="..\src\common\random.cpp" />
+    <ClCompile Include="..\src\memory\mempool.cpp" />
     <ClCompile Include="..\src\network\network_manager.cpp" />
     <ClCompile Include="..\src\network\network_packer\network_packer_fixhead.cpp" />
     <ClCompile Include="..\src\network\network_packer_factory.cpp" />

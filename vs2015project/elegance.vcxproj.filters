@@ -87,6 +87,9 @@
     <ClInclude Include="..\src\common\debug_message.hpp">
       <Filter>src\common</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\memory\mempool.hpp">
+      <Filter>src\memory</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\platform\thread\mutex.cpp">
@@ -130,6 +133,9 @@
     </ClCompile>
     <ClCompile Include="..\src\common\debug_message.cpp">
       <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\memory\mempool.cpp">
+      <Filter>src\memory</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
