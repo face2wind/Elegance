@@ -9,6 +9,8 @@
 namespace face2wind
 {
 
+static const unsigned int MEMORY_POOL_MAX_BUFFER_LEN = 1024 * 1024 * 10;
+
 class MemoryPoolManager;
 
 class MemoryPool
