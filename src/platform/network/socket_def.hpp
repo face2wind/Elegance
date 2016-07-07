@@ -65,14 +65,14 @@ struct Endpoint
     else if (remote_ip_addr.size() > other.remote_ip_addr.size())
       return false;
     else
-	{
-		if (remote_port < other.remote_port)
-			return true;
-		else if (remote_port > other.remote_port)
-			return false;
-		else
-			return local_port < other.local_port;
-	}
+    {
+      if (remote_port < other.remote_port)
+        return true;
+      else if (remote_port > other.remote_port)
+        return false;
+      else
+        return local_port < other.local_port;
+    }
   }
 
   IPAddr remote_ip_addr;

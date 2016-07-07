@@ -14,6 +14,7 @@
 #include <platform/common/timer.hpp>
 #include <platform/common/system_info.hpp>
 
+#include <platform/mempool.hpp>
 
 // non platform hpps
 
