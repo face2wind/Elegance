@@ -14,9 +14,10 @@
 #include <platform/common/timer.hpp>
 #include <platform/common/system_info.hpp>
 
-#include <platform/mempool.hpp>
 
 // non platform hpps
+
+#include <memory/mempool.hpp>
 
 #include <common/random.hpp>
 #include <common/debug_message.hpp>

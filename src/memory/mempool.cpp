@@ -3,7 +3,7 @@
 namespace face2wind
 {
 
-MemoryPool::ContiguousBuffer::ContiguousBuffer(unsigned int item_len, unsigned int item_num)
+MemoryPool::ContiguousBuffer::ContiguousBuffer(int item_len, int item_num)
     :item_len_(0), buff_len_(0), item_num_(0), buff_(nullptr)
 {
   if (item_len <= 0 || item_num <= 0)
@@ -19,7 +19,7 @@ MemoryPool::ContiguousBuffer::ContiguousBuffer(unsigned int item_len, unsigned i
   buff_len_ = item_num_ * item_len;
 
   buff_ = new char[buff_len_];
-  for (int i = 0;i < item_num_; ++i )
+  for (int i = 0; i < item_num_; ++i )
     free_buffs_.push(buff_ + (i*item_len));
 }
 
@@ -64,7 +64,7 @@ bool MemoryPool::ContiguousBuffer::FreeBuffer(void *buffer)
   return true;
 }
 
-MemoryPool::MemoryPool(unsigned int item_len)
+MemoryPool::MemoryPool(int item_len)
 {
   item_len_ = item_len;
 }
@@ -85,7 +85,7 @@ void *MemoryPool::Alloc()
     return nullptr;
   }
 
-  unsigned int alloc_buffer_num = total_cache_item_num_;
+  int alloc_buffer_num = total_cache_item_num_;
   if (alloc_buffer_num <= 0)
     alloc_buffer_num = MEMORY_POOL_FIRST_ALLOC_NUM;
   
@@ -130,10 +130,10 @@ MemoryPoolManager::~MemoryPoolManager()
   memory_size_to_pool_map_.clear();
 }
 
-void *MemoryPoolManager::Alloc(unsigned int size)
+void *MemoryPoolManager::Alloc(int size)
 {
-  unsigned int align = sizeof(long);
-  unsigned int fix_size = size + align - size % align;
+  int align = sizeof(long);
+  int fix_size = size + align - size % align;
   auto pool_it = memory_size_to_pool_map_.find(fix_size);
   if (pool_it == memory_size_to_pool_map_.end())
   {

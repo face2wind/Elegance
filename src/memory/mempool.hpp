@@ -9,8 +9,8 @@
 namespace face2wind
 {
 
-static const unsigned int MEMORY_POOL_MAX_BUFFER_LEN = 1024 * 1024 * 10;
-static const unsigned int MEMORY_POOL_FIRST_ALLOC_NUM = 5;
+static const int MEMORY_POOL_MAX_BUFFER_LEN = 1024 * 1024 * 10;
+static const int MEMORY_POOL_FIRST_ALLOC_NUM = 5;
 
 class MemoryPoolManager;
 
@@ -19,18 +19,18 @@ class MemoryPool
   class ContiguousBuffer
   {
    public:
-    ContiguousBuffer(unsigned int item_len, unsigned int item_num);
+    ContiguousBuffer(int item_len, int item_num);
     ~ContiguousBuffer();
 
-    unsigned int GetItemNum() { return item_num_; }
+    int GetItemNum() { return item_num_; }
     bool HasFreeBuffer();
     void *GetFreeBuffer();
     bool FreeBuffer(void *buffer);
 
    private:
-    unsigned int item_len_;
-    unsigned int buff_len_;
-    unsigned int item_num_;
+    int item_len_;
+    int buff_len_;
+    int item_num_;
     char * buff_;
     
     std::stack<char*> free_buffs_;
@@ -38,15 +38,15 @@ class MemoryPool
   };
 
  public:
-  MemoryPool(unsigned int item_len);
+  MemoryPool(int item_len);
   ~MemoryPool();
   
   void *Alloc();
   bool Free(void *memory);
 
  private:
-  unsigned int item_len_;
-  unsigned int total_cache_item_num_;
+  int item_len_;
+  int total_cache_item_num_;
 
   std::set<ContiguousBuffer *> pool_item_list_;
   
@@ -68,14 +68,14 @@ class MemoryPoolManager
   MemoryPoolManager();
   ~MemoryPoolManager();
   
-  void *Alloc(unsigned int size);
+  void *Alloc(int size);
   bool Free(void *memory);
 
  private:
   Mutex operate_lock_;
-  std::map<void*, unsigned int> memory_to_size_map_;
+  std::map<void*, int> memory_to_size_map_;
 
-  std::map<unsigned int, MemoryPool*> memory_size_to_pool_map_;
+  std::map<int, MemoryPool*> memory_size_to_pool_map_;
 };
 
 }
