@@ -3,119 +3,40 @@
 namespace face2wind
 {
 
-MemoryPool::ContiguousBuffer::ContiguousBuffer(int item_len, int item_num)
-    :item_len_(0), buff_len_(0), item_num_(0), buff_(nullptr)
-{
-  if (item_len <= 0 || item_num <= 0)
-    return;
-
-  item_len_ = item_len;
-  buff_len_ = item_len * item_num;
-  if (buff_len_ >= MEMORY_POOL_MAX_BUFFER_LEN)
-    buff_len_ = MEMORY_POOL_MAX_BUFFER_LEN;
-
-  // fix buffer len to item_len's times
-  item_num_ = buff_len_ / item_len;
-  buff_len_ = item_num_ * item_len;
-
-  buff_ = new char[buff_len_];
-  for (int i = 0; i < item_num_; ++i )
-    free_buffs_.push(buff_ + (i*item_len));
-}
-
-MemoryPool::ContiguousBuffer::~ContiguousBuffer()
-{
-  if (buff_len_ > 0 && nullptr != buff_)
-    delete []buff_;
-}
-
-bool MemoryPool::ContiguousBuffer::HasFreeBuffer()
-{
-  return !free_buffs_.empty();
-}
-
-void *MemoryPool::ContiguousBuffer::GetFreeBuffer()
-{
-  if (!this->HasFreeBuffer())
-    return nullptr;
-
-  void *tmp_buff = (void*)free_buffs_.top();
-  free_buffs_.pop();
-  on_use_buffers_.insert((char*)tmp_buff);
-  return tmp_buff;
-}
-
-bool MemoryPool::ContiguousBuffer::FreeBuffer(void *buffer)
-{
-  char *tmp_buff = (char*)buffer;
-  int offset = tmp_buff - buff_;
-  if (item_len_ <= 0 || offset < 0 || offset >= buff_len_)
-    return false;
-
-  if (offset % item_len_ > 0)
-    return false;
-
-  if (on_use_buffers_.find(tmp_buff) == on_use_buffers_.end())
-    return false;
-
-  on_use_buffers_.erase(tmp_buff);
-  free_buffs_.push(tmp_buff);
-  
-  return true;
-}
-
-MemoryPool::MemoryPool(int item_len)
+MemoryPool::MemoryPool(int item_len, int increase_num)
 {
   item_len_ = item_len;
+  increase_num_ = increase_num;
 }
 
 MemoryPool::~MemoryPool()
 {
-  for (ContiguousBuffer *buffer:pool_item_list_)
+  for (auto buff_it : real_buffer_ptrs_)
   {
-    if (nullptr != buffer)
-      delete buffer;
+    delete []buff_it;
   }
 }
 
 void *MemoryPool::Alloc()
 {
-  if (!free_pool_item_list_.empty())
+  if (free_buffers_.empty())
   {
-    return nullptr;
+    char *buff_ = new char[increase_num_ * item_len_];
+    real_buffer_ptrs_.push_back(buff_);
+    for (int i = 0; i < increase_num_; ++i )
+      free_buffers_.push(buff_ + (i*item_len_));
   }
 
-  int alloc_buffer_num = total_cache_item_num_;
-  if (alloc_buffer_num <= 0)
-    alloc_buffer_num = MEMORY_POOL_FIRST_ALLOC_NUM;
-  
-  ContiguousBuffer *buffer = new ContiguousBuffer(item_len_, alloc_buffer_num);
-  if (nullptr == buffer)
-    return nullptr;
-  
-  pool_item_list_.insert(buffer);
-  total_cache_item_num_ += buffer->GetItemNum();
-  
-  void *mem = buffer->GetFreeBuffer();
-  
-  if (buffer->HasFreeBuffer())
-    free_pool_item_list_.push(buffer);
-  
+  void *mem = (void*)free_buffers_.top();
+
+  free_buffers_.pop();
   return mem;
 }
 
 bool MemoryPool::Free(void *memory)
 {
-  auto buffer_it = memory_to_buffer_map_.find(memory);
-  if (buffer_it != memory_to_buffer_map_.end())
-  {
-    bool free_succ = buffer_it->second->FreeBuffer(memory);
-    if (free_succ)
-      free_pool_item_list_.push(buffer_it->second);
-    return free_succ;
-  }
-
-  return false;
+  free_buffers_.push((void*)memory);
+  return true;
 }
 
 MemoryPoolManager::MemoryPoolManager()
@@ -132,16 +53,22 @@ MemoryPoolManager::~MemoryPoolManager()
 
 void *MemoryPoolManager::Alloc(int size)
 {
+  void *mem = nullptr;
+
   int align = sizeof(long);
   int fix_size = size + align - size % align;
   auto pool_it = memory_size_to_pool_map_.find(fix_size);
   if (pool_it == memory_size_to_pool_map_.end())
   {
-    memory_size_to_pool_map_[fix_size] = new MemoryPool(fix_size);
-    pool_it = memory_size_to_pool_map_.find(fix_size);
+    MemoryPool *pool = new MemoryPool(fix_size);
+    memory_size_to_pool_map_[fix_size] = pool;
+    mem = pool->Alloc();
+  }
+  else
+  {
+    mem = pool_it->second->Alloc();
   }
 
-  void *mem = pool_it->second->Alloc();
   if (nullptr != mem)
     memory_to_size_map_[mem] = fix_size;
   
