@@ -90,6 +90,9 @@
     <ClInclude Include="..\src\memory\mempool.hpp">
       <Filter>src\memory</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\memory\byte_array.hpp">
+      <Filter>src\memory</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\platform\thread\mutex.cpp">
@@ -135,6 +138,9 @@
       <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\memory\mempool.cpp">
+      <Filter>src\memory</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\memory\byte_array.cpp">
       <Filter>src\memory</Filter>
     </ClCompile>
   </ItemGroup>

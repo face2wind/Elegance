@@ -18,6 +18,7 @@
 // non platform hpps
 
 #include <memory/mempool.hpp>
+#include <memory/byte_array.hpp>
 
 #include <common/random.hpp>
 #include <common/debug_message.hpp>
