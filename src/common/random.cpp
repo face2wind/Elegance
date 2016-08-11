@@ -35,6 +35,8 @@ int Random::RandomNum(int min_num, int max_num)
   else
   {
     int rand_num = (rand() << 16) + rand();
+    if (rand_num < 0)
+      rand_num *= -1;
     return min_num + int(rand_num % interval_num);
   }
 }
