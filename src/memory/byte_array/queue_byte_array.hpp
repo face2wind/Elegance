@@ -3,13 +3,9 @@
 #include <deque>
 #include <string>
 
-namespace face2wind {
+#include "byte_array.hpp"
 
-enum class Endian
-{
-  BIG_ENDIAN = 0,
-  LITTLE_ENDIAN
-};
+namespace face2wind {
 
 template<class T>
 T TransformType(const void *const value)
@@ -18,13 +14,9 @@ T TransformType(const void *const value)
   return target;
 }
 
-class ByteArray
+class QueueByteArray : public ByteArray
 {
  public:
-    
-  void SetEndian(Endian edian){cur_endian_ = edian;}
-  Endian GetEndian(){return cur_endian_;}
-        
   unsigned int BytesAvailable(){return ( unsigned int)(bytes_queue_.size());}
 
   signed char ReadInt8();
@@ -61,8 +53,8 @@ class ByteArray
   void WriteString(const std::string &value);
   void WriteObject(const void *obj, int bytesLen);
 
-  ByteArray &operator+(ByteArray other);
-  ByteArray &operator=(ByteArray other);
+  QueueByteArray &operator+(QueueByteArray other);
+  QueueByteArray &operator=(QueueByteArray other);
 
   void ReadFromByteArray(ByteArray *other,int bytesLen = 0);
   void ShowAllBytes();
@@ -71,12 +63,11 @@ class ByteArray
     bytes_queue_.clear();
   }
     
-  ByteArray() : cur_endian_(Endian::LITTLE_ENDIAN), show_debug_msg_(false) {}
-  ~ByteArray(){}
+  QueueByteArray() : show_debug_msg_(false) {}
+  ~QueueByteArray(){}
 
  private:
   std::deque<unsigned char> bytes_queue_;
-  Endian cur_endian_;    
   
  public:
   bool show_debug_msg_; 

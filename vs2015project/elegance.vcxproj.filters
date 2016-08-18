@@ -31,6 +31,12 @@
     <Filter Include="src\rpc">
       <UniqueIdentifier>{fc88facc-ed48-4b30-8687-3d48be6b83a8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\memory\byte_array">
+      <UniqueIdentifier>{b627f1c9-723a-403e-84f8-27077d8304ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\memory\serialize">
+      <UniqueIdentifier>{09e3b6b6-4667-4d53-9a24-876a5b618678}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\elegance.hpp">
@@ -90,8 +96,20 @@
     <ClInclude Include="..\src\memory\mempool.hpp">
       <Filter>src\memory</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\memory\byte_array.hpp">
-      <Filter>src\memory</Filter>
+    <ClInclude Include="..\src\common\tools.hpp">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\memory\byte_array\byte_array.hpp">
+      <Filter>src\memory\byte_array</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\memory\byte_array\queue_byte_array.hpp">
+      <Filter>src\memory\byte_array</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\memory\serialize\serialize_base.hpp">
+      <Filter>src\memory\serialize</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\memory\serialize\serialize_manager.hpp">
+      <Filter>src\memory\serialize</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -140,8 +158,14 @@
     <ClCompile Include="..\src\memory\mempool.cpp">
       <Filter>src\memory</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\memory\byte_array.cpp">
-      <Filter>src\memory</Filter>
+    <ClCompile Include="..\src\common\tools.cpp">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\memory\byte_array\queue_byte_array.cpp">
+      <Filter>src\memory\byte_array</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\memory\serialize\serialize_manager.cpp">
+      <Filter>src\memory\serialize</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
