@@ -1,5 +1,3 @@
-#pragma once
-
 #include "serialize_manager.hpp"
 
 namespace face2wind {
