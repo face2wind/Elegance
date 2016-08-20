@@ -9,6 +9,9 @@ class SerializeNetworkManager
  public:
   void Send(const SerializeBase &data);
   // undesigned
+
+ private:
+  
 };
 
 }
