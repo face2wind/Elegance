@@ -58,9 +58,6 @@ void NetworkPackagerFixHead::UnPack(NetworkID net_id, char *data, int length)
 
       if (buffer_it->second.buffer.buffer_size < all_pack_size)
         buffer_it->second.buffer.ChangeBufferSize(all_pack_size);
-
-      std::cout<<"header size = "<<header->package_length<<std::endl;
-
     }
 
     int remain_bytes = length - copy_bytes;
