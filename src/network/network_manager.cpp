@@ -289,6 +289,10 @@ void NetworkManager::OnRecv(IPAddr ip, Port port, Port local_port, char *data, i
   }
   net_id_endpoint_lock_.Unlock();
 
+  std::stringstream ss;
+  ss << "NetworkManager::OnRecv " << ip << ":"<<port<<", data length = " << length;
+  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+
   if (nullptr != packager_)
     packager_->UnPack(net_id_it->second, data, length);
 }
