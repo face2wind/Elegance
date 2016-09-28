@@ -84,10 +84,10 @@ class NetworkManager : public ISocketHandler
   virtual void OnRecv(IPAddr ip, Port port, Port local_port, char *data, int length);
   virtual void OnDisconnect(IPAddr ip, Port port, Port local_port);
 
-  void SendRaw(NetworkID net_id, const char *data, int length);
-  void OnRecvPackage(NetworkID net_id, char *data, int length);
+  virtual void SendRaw(NetworkID net_id, const char *data, int length);
+  virtual void OnRecvPackage(NetworkID net_id, char *data, int length);
 
- private:
+ protected:
   std::set<Thread *> thread_set_;
 
   std::set<INetworkHandler *> handler_list_;
