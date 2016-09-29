@@ -23,8 +23,8 @@ class SerializeBase
   static std::map<std::string, SerializeBase*> name_to_object_map_;
 
   virtual SerializeBase * Clone() const = 0;
-  virtual const std::string & GetClassName() = 0;
-  virtual void Serialize(ByteArray &collector) = 0;
+  virtual const std::string & GetClassName() const = 0;
+  virtual void Serialize(ByteArray &collector) const = 0;
   virtual void Unserialize(ByteArray &collector) = 0;
 };
 

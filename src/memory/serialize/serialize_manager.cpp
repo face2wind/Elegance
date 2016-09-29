@@ -10,7 +10,7 @@ void SerializeNetworkManager::Send(NetworkID net_id, const SerializeBase &data)
 
   const std::string &class_name = data.GetClassName();
   by.WriteString(class_name);
-  data.Unserialize(by);
+  data.Serialize(by);
 
   int len = by.BytesAvailable();
   char *char_data = (char*)by.ReadObject(len);
@@ -18,7 +18,7 @@ void SerializeNetworkManager::Send(NetworkID net_id, const SerializeBase &data)
     return;
   
   NetworkManager::Send(net_id, char_data, len);
-  delete []data;
+  delete []char_data;
 }
 
 void SerializeNetworkManager::RegistSerializeHandler(ISerializeNetworkHandler *handler)
@@ -55,7 +55,7 @@ void SerializeNetworkManager::OnRecvPackage(NetworkID net_id, char *data, int le
   
   QueueByteArray by;
   by.WriteObject(data + length - serialize_len, serialize_len);
-  serialize_data->Serialize(by);
+  serialize_data->Unserialize(by);
   
   for (auto handler_ptr : serialize_handler_list_)
     handler_ptr->OnRecv(net_id, serialize_data);
