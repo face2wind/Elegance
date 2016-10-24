@@ -1,8 +1,19 @@
 #!/usr/bin/env python3
 
+import os
 import sys
 import getopt
+import xml.dom.minidom
 
+from creator import cpp_creator
+
+#if not 'cpp_creator' in sys.modules:
+#    b = __import__('cpp_creator')
+#else:
+#    eval('import cpp_creator')
+#    b = eval('reload(cpp_creator)')
+
+                    
 version="0.0.1"
 
 #print "script name :", sys.argv[0]
@@ -12,7 +23,7 @@ version="0.0.1"
 def usage():
     print("./protocol_creator.py")
     print("  -i input_protocol_file")
-    print("  -o out_put_file")
+    print("  -o out_put_path")
     print("  -h show usage")
 
 def showVersion():
@@ -35,5 +46,21 @@ for op, value in opts:
         showVersion()
         sys.exit()
 
+if ("" == input_file or "" == output_path):
+    print("input or output is empty")
+    #sys.exit()
+
 print("input (", input_file, ")")
 print("output (", output_path, ")")
+
+dom = xml.dom.minidom.parse(input_file)
+root = dom.documentElement
+
+#print(root.nodeName)
+#print(root.nodeValue)
+#print(root.nodeType)
+#print(root.ELEMENT_NODE)
+
+file_name = os.path.basename(input_file)[0:-4]
+creator = cpp_creator.CppCreator(file_name, root, output_path)
+creator.DoCreate()

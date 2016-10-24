@@ -1,0 +1,20 @@
+<xml>
+  <protocol name='CSRegisterAccount'>
+    <attr name='name' type='string'/>
+    <attr name='passwd' type='string'/>
+  </protocol>
+
+  <protocol name='CSLogin'>
+    <attr name='name' type='string'/>
+    <attr name='passwd' type='string'/>
+  </protocol>
+
+  <protocol name='SCLoginResult'>
+    <attr name='result' type='int32'/>
+  </protocol>
+
+  <protocol name='TestProto'>
+    <attr name='name_list' type='array' subtype='string'/>
+    <attr name='login_list' type='array' subtype='CSLogin'/>
+  </protocol>
+</xml>
