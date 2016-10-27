@@ -20,7 +20,7 @@ class ISerializeNetworkHandler : public INetworkHandler
 class SerializeNetworkManager : public NetworkManager
 {
  public:
-  void Send(NetworkID net_id, const SerializeBase &data);
+  void SendSerialize(NetworkID net_id, const SerializeBase &data);
 
   void RegistSerializeHandler(ISerializeNetworkHandler *handler);
   void UnregistSerializeHandler(ISerializeNetworkHandler *handler);

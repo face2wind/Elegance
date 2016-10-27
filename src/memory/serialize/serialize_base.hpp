@@ -17,15 +17,24 @@ class SerializeBase
   
   friend class SerializeNetworkManager;
 
-  static SerializeBase * CreateSerialize(std::string class_name);
-  
  protected:
-  static std::map<std::string, SerializeBase*> name_to_object_map_;
-
-  virtual SerializeBase * Clone() const = 0;
-  virtual const std::string & GetClassName() const = 0;
+  virtual const std::string GetTypeName() const = 0;
   virtual void Serialize(ByteArray &collector) const = 0;
   virtual void Unserialize(ByteArray &collector) = 0;
+};
+
+class SerializeDescribe
+{
+ public:
+  SerializeDescribe() {}
+  virtual ~SerializeDescribe() {}
+
+  static SerializeBase * CreateSerialize(std::string class_name);
+
+ protected:
+  virtual SerializeBase * CreateSerialize() const = 0;
+
+  static std::map<std::string, SerializeDescribe*> name_to_object_map_;
 };
 
 }

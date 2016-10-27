@@ -20,6 +20,7 @@
 #include <memory/mempool.hpp>
 #include <memory/byte_array/byte_array.hpp>
 #include <memory/byte_array/queue_byte_array.hpp>
+#include <memory/serialize/serialize_manager.hpp>
 
 #include <common/random.hpp>
 #include <common/debug_message.hpp>

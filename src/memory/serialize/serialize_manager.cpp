@@ -4,12 +4,11 @@
 
 namespace face2wind {
 
-void SerializeNetworkManager::Send(NetworkID net_id, const SerializeBase &data)
+void SerializeNetworkManager::SendSerialize(NetworkID net_id, const SerializeBase &data)
 {
   QueueByteArray by;
 
-  const std::string &class_name = data.GetClassName();
-  by.WriteString(class_name);
+  by.WriteString(data.GetTypeName());
   data.Serialize(by);
 
   int len = by.BytesAvailable();
@@ -45,7 +44,7 @@ void SerializeNetworkManager::OnRecvPackage(NetworkID net_id, char *data, int le
   memcpy(serialize_name, data + sizeof(short), *s_name_len);
   serialize_name[*s_name_len] = '\0';
     
-  SerializeBase *serialize_data = SerializeBase::CreateSerialize(serialize_name);
+  SerializeBase *serialize_data = SerializeDescribe::CreateSerialize(serialize_name);
   if (nullptr == serialize_data)
     return;
 
