@@ -15,9 +15,6 @@ class SerializeBase
   SerializeBase() {}
   virtual ~SerializeBase() {}
   
-  friend class SerializeNetworkManager;
-
- protected:
   virtual const std::string GetTypeName() const = 0;
   virtual void Serialize(ByteArray &collector) const = 0;
   virtual void Unserialize(ByteArray &collector) = 0;

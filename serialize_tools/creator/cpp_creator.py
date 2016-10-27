@@ -142,8 +142,6 @@ class CppCreator(object):
 
             hpp_file_str += "\n  virtual void Serialize(ByteArray &collector) const;\n"
             hpp_file_str += "  virtual void Unserialize(ByteArray &collector);\n"
-            hpp_file_str += "\nprotected:\n"
-            hpp_file_str += "  virtual SerializeBase * Clone() const { return new " + class_name + "(); }\n"
             hpp_file_str += "  virtual const std::string GetTypeName() const { return \"" + class_name + "\"; }\n"
             hpp_file_str += "};\n\n"
 
