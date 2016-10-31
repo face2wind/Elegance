@@ -146,7 +146,7 @@ class CppCreator(object):
             hpp_file_str += "};\n\n"
 
             describe_class_name = "__" + class_name + "Describe__";
-            describe_hpp_str += ("class " + describe_class_name + " : public SerializeDescribe\n{\npublic:\n  " + describe_class_name + "() { name_to_object_map_[\"" + class_name + "\"] = this; }\n  virtual ~" + describe_class_name + "() {}\n")
+            describe_hpp_str += ("class " + describe_class_name + " : public SerializeDescribe\n{\npublic:\n  " + describe_class_name + "() { GetNameToObjectMap()[\"" + class_name + "\"] = this; }\n  virtual ~" + describe_class_name + "() {}\n")
             describe_hpp_str += "\nprotected:\n  virtual SerializeBase * CreateSerialize() const { return new " + class_name + "(); }\n};\n\n"
             describe_cpp_str += (describe_class_name + " " + "for_describe_register_to_" + describe_class_name.lower() + ";\n")
             cpp_file_str += ("void " + class_name + "::Serialize(ByteArray &collector) const\n")

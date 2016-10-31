@@ -31,7 +31,7 @@ class SerializeDescribe
  protected:
   virtual SerializeBase * CreateSerialize() const = 0;
 
-  static std::map<std::string, SerializeDescribe*> name_to_object_map_;
+  static std::map<std::string, SerializeDescribe*> & GetNameToObjectMap();
 };
 
 }
