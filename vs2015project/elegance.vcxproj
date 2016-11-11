@@ -103,7 +103,9 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>D:\dream\study\Elegance\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -178,6 +180,7 @@
     <ClCompile Include="..\src\common\tools.cpp" />
     <ClCompile Include="..\src\memory\byte_array\queue_byte_array.cpp" />
     <ClCompile Include="..\src\memory\mempool.cpp" />
+    <ClCompile Include="..\src\memory\serialize\serialize_base.cpp" />
     <ClCompile Include="..\src\memory\serialize\serialize_manager.cpp" />
     <ClCompile Include="..\src\network\network_manager.cpp" />
     <ClCompile Include="..\src\network\network_packer\network_packer_fixhead.cpp" />

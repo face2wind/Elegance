@@ -172,7 +172,6 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
   WSADATA          wsaData;
   SOCKADDR_IN      ServerAddr;
   int Ret;
-  //初始化winsock 2.2版本  
   if ((Ret = WSAStartup(MAKEWORD(2, 2), &wsaData)) != 0)
   {
 	  std::stringstream ss;
@@ -181,7 +180,6 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
     return false;
   }
 
-  //创建一个新的套接字来建立客户机连接  
   if ((local_sock_ = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == INVALID_SOCKET)
   {
 	  std::stringstream ss;
@@ -233,9 +231,7 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
   if (nullptr != handler_)
     handler_->OnDisconnect(remote_ip_addr_, remote_port_, local_port_);
 
-  //关闭套接字  
   closesocket(local_sock_);
-  //应用程序完成对连接的处理后，调用WSACleanup  
   WSACleanup();
 
   running_ = false;
@@ -247,7 +243,6 @@ bool SocketConnect::Write(const char *data, int length)
   if (!running_)
     return false;
 
-  //发送数据  
   if (SOCKET_ERROR == send(local_sock_, data, length, 0))
   {
 	  std::stringstream ss;

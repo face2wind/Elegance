@@ -167,5 +167,8 @@
     <ClCompile Include="..\src\memory\serialize\serialize_manager.cpp">
       <Filter>src\memory\serialize</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\memory\serialize\serialize_base.cpp">
+      <Filter>src\memory\serialize</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

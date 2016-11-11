@@ -208,8 +208,8 @@ bool SocketAccept::Disconnect(IPAddr ip, Port port)
 DWORD WINAPI SocketAccept::ServerWorkThread(LPVOID CompletionPortID)
 {
   HANDLE complationPort = (HANDLE)CompletionPortID;
-  DWORD bytesTransferred;
-  LPPER_HANDLE_DATA pHandleData = NULL;
+  DWORD bytesTransferred = 0;
+  LPPER_HANDLE_DATA pHandleData= NULL;
   LPPER_IO_OPERATION_DATA pIoData = NULL;
   DWORD sendBytes = 0;
   DWORD recvBytes = 0;
@@ -302,7 +302,7 @@ DWORD WINAPI SocketAccept::ServerWorkThread(LPVOID CompletionPortID)
       }
       else
       {
-        // 继续发送剩余的
+        // continue send left data
         pIoData->databuff.buf += bytesTransferred;
         pIoData->databuff.len -= bytesTransferred;
         ZeroMemory(&(pIoData->overlapped), sizeof(pIoData->overlapped));
@@ -321,8 +321,7 @@ DWORD WINAPI SocketAccept::ServerWorkThread(LPVOID CompletionPortID)
     }
     else if (pIoData->type == IOCPHandleType::RECV)
     {
-      // 接收数据，不管有没有接收完全，都直接触发事件，并重新接收下一段数据
-
+	  // receive data, no matter receive complete or not,  trigger the event, and receive next data
       if (nullptr != pIoData->accept_ptr)
       {
         auto endpoint_it = pIoData->accept_ptr->sock_endpoint_map_.find(pHandleData->socket);
@@ -405,7 +404,6 @@ bool SocketAccept::Listen(Port port)
     CloseHandle(threadHandle);
   }
 
-  // 启动一个监听socket
   SOCKET listenSocket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
   if (listenSocket == INVALID_SOCKET)
   {
@@ -420,7 +418,6 @@ bool SocketAccept::Listen(Port port)
   internetAddr.sin_addr.s_addr = htonl(INADDR_ANY);
   internetAddr.sin_port = htons(port);
 
-  // 绑定监听端口
   if (bind(listenSocket, (PSOCKADDR)&internetAddr, sizeof(internetAddr)) == SOCKET_ERROR)
   {
     std::stringstream ss;
@@ -440,7 +437,6 @@ bool SocketAccept::Listen(Port port)
   local_port_ = port;
   listening_ = true;
 
-  // 开始死循环，处理数据
   while (true)
   {
     SOCKET acceptSocket;
