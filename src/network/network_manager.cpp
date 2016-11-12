@@ -90,10 +90,10 @@ void NetworkManager::Send(NetworkID net_id, const char *data, int length)
   auto endpoint_it = net_id_to_endpoint_map_.find(net_id);
   if (endpoint_it == net_id_to_endpoint_map_.end())
   {
-    net_id_endpoint_lock_.Lock();
+    net_id_endpoint_lock_.Unlock();
     return;
   }
-  net_id_endpoint_lock_.Lock();
+  net_id_endpoint_lock_.Unlock();
 
   std::stringstream ss;
   ss << "NetworkManager::Send net_id = " << net_id << " length = " << length;

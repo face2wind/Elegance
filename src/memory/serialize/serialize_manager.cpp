@@ -49,7 +49,7 @@ void SerializeNetworkManager::OnRecvPackage(NetworkID net_id, char *data, int le
     return;
 
   int serialize_len = length - sizeof(short) - *s_name_len;
-  if (serialize_len <= 0)
+  if (serialize_len < 0)
     return;
   
   QueueByteArray by;
