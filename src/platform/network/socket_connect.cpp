@@ -82,9 +82,9 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
   running_ = true;
   while(running_)
   {
-	  std::stringstream ss;
-	  ss << "SocketConnect::Connect start epoll wait";
-	  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+    std::stringstream ss;
+    ss << "SocketConnect::Connect start epoll wait";
+    DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
 
     fd_count = epoll_wait(epoll_fd_, epoll_event_list_, MAX_EPOLL_EVENTS, -1);
     if (-1 == fd_count)
@@ -125,7 +125,7 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
           socket_error = true;
           
           if (nullptr != handler_)
-			handler_->OnDisconnect(remote_ip_addr_, remote_port_, local_port_);
+            handler_->OnDisconnect(remote_ip_addr_, remote_port_, local_port_);
         }
       }
       else
@@ -174,17 +174,17 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
   int Ret;
   if ((Ret = WSAStartup(MAKEWORD(2, 2), &wsaData)) != 0)
   {
-	  std::stringstream ss;
-	  ss << "SocketConnect::Connect Error:WSAStartup failed with " << Ret;
-	  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+    std::stringstream ss;
+    ss << "SocketConnect::Connect Error:WSAStartup failed with " << Ret;
+    DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
     return false;
   }
 
   if ((local_sock_ = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == INVALID_SOCKET)
   {
-	  std::stringstream ss;
-	  ss << "SocketConnect::Connect Error:socket failed with " << WSAGetLastError();
-	  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+    std::stringstream ss;
+    ss << "SocketConnect::Connect Error:socket failed with " << WSAGetLastError();
+    DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
     WSACleanup();
     return false;
   }
@@ -196,9 +196,9 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
 
   if (SOCKET_ERROR == connect(local_sock_, (SOCKADDR *)&ServerAddr, sizeof(ServerAddr)))
   {
-	  std::stringstream ss;
-	  ss << "SocketConnect::Connect Error:connect failed with " << WSAGetLastError();
-	  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+    std::stringstream ss;
+    ss << "SocketConnect::Connect Error:connect failed with " << WSAGetLastError();
+    DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
     closesocket(local_sock_);
     WSACleanup();
     return false;
@@ -245,9 +245,9 @@ bool SocketConnect::Write(const char *data, int length)
 
   if (SOCKET_ERROR == send(local_sock_, data, length, 0))
   {
-	  std::stringstream ss;
-	  ss << "SocketConnect::Write Error:send failed with " << WSAGetLastError();
-	  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+    std::stringstream ss;
+    ss << "SocketConnect::Write Error:send failed with " << WSAGetLastError();
+    DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
 
     running_ = false;
     return false;
@@ -259,7 +259,7 @@ bool SocketConnect::Write(const char *data, int length)
 
 bool SocketConnect::CheckOnHandle(IPAddr ip, Port port)
 {
-	return (ip == remote_ip_addr_ && port == remote_port_);
+  return (ip == remote_ip_addr_ && port == remote_port_);
 }
 
 }
