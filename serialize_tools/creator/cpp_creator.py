@@ -98,11 +98,11 @@ class CppCreator(object):
             code_str += ("  " + attr_name + " = collector.ReadString();\n")
         elif type_str == "array":
             if subtype_str == "":
-                print("GetSerializeCode : subtype_str can not empty when type is array")
+                print("GetUnserializeCode : subtype_str can not empty when type is array")
                 exit(1)
             code_str += ("  {\n    int array_size = collector.ReadUint16();\n    " + self.GetCppRealType(subtype_str, "") + " tmp_attr_value;\n")
             code_str += "    for (int index = 0; index < array_size; ++ index)\n    {\n    "
-            sub_serialize_code = self.GetSerializeCode(subtype_str, "", "tmp_attr_value")
+            sub_serialize_code = self.GetUnserializeCode(subtype_str, "", "tmp_attr_value")
             if sub_serialize_code == "":
                 sub_serialize_code = "  tmp_attr_value.Unserialize(collector);\n"
             code_str += sub_serialize_code
