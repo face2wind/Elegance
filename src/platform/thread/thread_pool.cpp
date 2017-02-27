@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include <common/debug_message.hpp>
 #include <platform/common/system_info.hpp>
 #include <platform/thread/thread_pool.hpp>
 
@@ -18,7 +19,8 @@ ThreadPoolSignal::~ThreadPoolSignal()
   
 void ThreadPoolSignal::OnReceive(SignalType type)
 {
-  std::cout<<"ThreadPoolSignal::OnReceive("<<int(type)<<")"<<std::endl;
+  fDebugWithHead(DebugMessageType::THREAD) << "ThreadPoolSignal::OnReceive("<<int(type)<<")" << fDebugEndl;
+    
   if (nullptr != thread_pool_ptr_)
     thread_pool_ptr_->Stop();
 }
@@ -55,7 +57,6 @@ ThreadPool::ThreadPool() : is_running_(false), signal_(this)
 ThreadPool::~ThreadPool()
 {
   this->Stop();
-
 }
 
 bool ThreadPool::Run(int thread_num)
@@ -71,7 +72,7 @@ bool ThreadPool::Run(int thread_num)
 
   is_running_ = true;
   
-  std::cout<<"ThreadPool::Run("<<thread_num<<")"<<std::endl;
+  fDebugWithHead(DebugMessageType::THREAD) << "ThreadPool::Run(" << thread_num << ")" << fDebugEndl;
   for (int index = 0; index < thread_num; ++ index)
   {
     ThreadPoolWorkingTask *work_task = new ThreadPoolWorkingTask();
@@ -119,6 +120,7 @@ bool ThreadPool::Stop()
   CloseHandle(handle_list_[EVENT_TYPE_AUTO_RESET]);
   CloseHandle(handle_list_[EVENT_TYPE_MANUAL_RESET]);
 #endif
+  signal_.RemoveType(SignalType::INTERRUPT);
   return true;
 }
 
@@ -179,16 +181,17 @@ IThreadTask * ThreadPool::GetNextTask()
   }
   mutex_.Lock();
 #endif
-  
-  std::cout<<"thread "<<Thread::GetCurrentThreadID()<<" : ";
+
+  fDebugWithHead(DebugMessageType::THREAD) << "thread "<<Thread::GetCurrentThreadID()<<" : " << fDebugEndl;
   if (task_list_.empty() || !is_running_)
   {
-    std::cout<<"father thread stoped, "<<task_list_.size()<<" - "<<is_running_<<std::endl;
+    fDebugWithHead(DebugMessageType::THREAD) << "father thread stoped, "<<task_list_.size()<<" - "<<is_running_<<fDebugEndl;
     mutex_.Unlock();
     return nullptr;
   }
 
-  std::cout<<"GetNextTask succ!!"<<std::endl;
+  fDebugWithHead(DebugMessageType::THREAD) << "GetNextTask succ!!"<< fDebugEndl;
+  
   IThreadTask *task = task_list_.front();
   
   task_list_.pop_front();

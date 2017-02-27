@@ -1,12 +1,14 @@
 #pragma once
 
 #include <set>
+#include <platform/thread/mutex.hpp>
 
 namespace face2wind {
 
 enum class SignalType
 {
-  INTERRUPT
+  INTERRUPT,
+  COUNT
 };
   
 class ISignal
@@ -17,6 +19,7 @@ public:
   
   bool CheckType(SignalType type);
   void AddType(SignalType type);
+  void RemoveType(SignalType type);
   
   virtual void OnReceive(SignalType type) = 0;
   
@@ -25,6 +28,7 @@ private:
   
 protected:
   void *param_;
+  Mutex mutex_;
 };
 
 class SignalManager_
@@ -35,6 +39,7 @@ public:
   
   void Register(ISignal *signal);
   void Unregister(ISignal *signal);
+  void UpdateSignal();
   
 protected:
   SignalManager_();
@@ -42,6 +47,7 @@ protected:
   static void Handle(int sig);
   
   std::set<ISignal*> signal_set_;
+  Mutex mutex_;
 };
 
 }

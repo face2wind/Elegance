@@ -12,13 +12,13 @@ class ThreadPool;
 
 class ThreadPoolSignal : public ISignal
 {
-public:
+ public:
   ThreadPoolSignal(ThreadPool *pool);
   ~ThreadPoolSignal();
   
   virtual void OnReceive(SignalType type);
   
-private:
+ private:
   ThreadPool *thread_pool_ptr_;
 };
   
@@ -58,10 +58,10 @@ class ThreadPool
 #ifdef __WINDOWS__
   enum EventType
   {
-	EVENT_TYPE_AUTO_RESET,
+    EVENT_TYPE_AUTO_RESET,
     EVENT_TYPE_MANUAL_RESET,
 
-	EVENT_TYPE_MAX
+    EVENT_TYPE_MAX
   };
 
   HANDLE handle_list_[EVENT_TYPE_MAX];

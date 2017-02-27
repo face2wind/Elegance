@@ -31,9 +31,10 @@ void NetworkManager::RegistHandler(INetworkHandler *handler)
 
   handler_list_.insert(handler);
 
-  std::stringstream ss;
-  ss << "NetworkManager::RegistHandler(" << handler << ")";
-  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+  //  std::stringstream ss;
+  //ss << "NetworkManager::RegistHandler(" << handler << ")";
+  //DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+  fDebugWithHead(DebugMessageType::BASE_NETWORK) << "NetworkManager::RegistHandler()" << fDebugEndl;
 }
 
 void NetworkManager::UnregistHandler(INetworkHandler *handler)
@@ -43,9 +44,7 @@ void NetworkManager::UnregistHandler(INetworkHandler *handler)
 
   handler_list_.erase(handler);
 
-  std::stringstream ss;
-  ss << "NetworkManager::UnregistHandler(" << handler << ")";
-  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+  fDebugWithHead(DebugMessageType::BASE_NETWORK) << "NetworkManager::UnregistHandler()" << fDebugEndl;
 }
 
 void NetworkManagerListenTask::Run()
@@ -95,9 +94,7 @@ void NetworkManager::Send(NetworkID net_id, const char *data, int length)
   }
   net_id_endpoint_lock_.Unlock();
 
-  std::stringstream ss;
-  ss << "NetworkManager::Send net_id = " << net_id << " length = " << length;
-  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+  fDebugWithHead(DebugMessageType::BASE_NETWORK) << "NetworkManager::Send net_id = " << net_id << " length = " << length << fDebugEndl;
 
   if (nullptr != packager_)
     packager_->PackAndSend(net_id, data, length);
@@ -114,9 +111,7 @@ void NetworkManager::Disconnect(NetworkID net_id)
   }
   net_id_endpoint_lock_.Lock();
   
-  std::stringstream ss;
-  ss << "NetworkManager::Disconnect net_id = " << net_id;
-  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+  fDebugWithHead(DebugMessageType::BASE_NETWORK) << "NetworkManager::Disconnect net_id = " << net_id << fDebugEndl;
 
   auto accept_it = net_id_to_accept_.find(net_id);
   if (accept_it != net_id_to_accept_.end())
@@ -183,9 +178,7 @@ void NetworkManager::ListenThread(Port port)
   accept_list_.insert(accept);
   //accept_list_mutex_.Unlock();
 
-  std::stringstream ss;
-  ss << "NetworkManager::ListenThread port = " << port;
-  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+  fDebugWithHead(DebugMessageType::BASE_NETWORK) << "NetworkManager::ListenThread port = " << port << fDebugEndl;
 
   bool listen_result = accept->Listen(port);
 
@@ -208,9 +201,7 @@ void NetworkManager::ConnectThread(IPAddr ip, Port port)
   connect_list_.insert(connect);
   //accept_list_mutex_.Unlock();
 
-  std::stringstream ss;
-  ss << "NetworkManager::ConnectThread remote = " << ip << ":" << port;
-  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+  fDebugWithHead(DebugMessageType::BASE_NETWORK) << "NetworkManager::ConnectThread remote = " << ip << ":" << port << fDebugEndl;
 
   bool connect_result = connect->Connect(ip, port);
 
@@ -243,9 +234,7 @@ void NetworkManager::OnAccept(IPAddr remote_ip, Port remote_port, Port local_por
     }
   }
 
-  std::stringstream ss;
-  ss << "NetworkManager::OnAccept remote = " << remote_ip << ":" << remote_port << ", local_port = " << local_port << ", net_id = "<< net_id;
-  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+  fDebugWithHead(DebugMessageType::BASE_NETWORK) << "NetworkManager::OnAccept remote = " << remote_ip << ":" << remote_port << ", local_port = " << local_port << ", net_id = "<< net_id << fDebugEndl;
 
   for (auto handler : handler_list_)
     handler->OnAccept(remote_ip, remote_port, local_port, net_id);
@@ -270,9 +259,7 @@ void NetworkManager::OnConnect(IPAddr remote_ip, Port remote_port, Port local_po
     }
   }
 
-  std::stringstream ss;
-  ss << "NetworkManager::OnConnect remote = " << remote_ip << ":" << remote_port << ", local_port = " << local_port << ", net_id = " << net_id;
-  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+  fDebugWithHead(DebugMessageType::BASE_NETWORK) << "NetworkManager::OnConnect remote = " << remote_ip << ":" << remote_port << ", local_port = " << local_port << ", net_id = " << net_id << fDebugEndl;
 
   for (auto handler : handler_list_)
     handler->OnConnect(remote_ip, remote_port, local_port, true, net_id);
@@ -289,9 +276,7 @@ void NetworkManager::OnRecv(IPAddr ip, Port port, Port local_port, char *data, i
   }
   net_id_endpoint_lock_.Unlock();
 
-  std::stringstream ss;
-  ss << "NetworkManager::OnRecv " << ip << ":"<<port<<", data length = " << length;
-  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+  fDebugWithHead(DebugMessageType::BASE_NETWORK) << "NetworkManager::OnRecv " << ip << ":"<<port<<", data length = " << length << fDebugEndl;
 
   if (nullptr != packager_)
     packager_->UnPack(net_id_it->second, data, length);
@@ -327,9 +312,7 @@ void NetworkManager::OnDisconnect(IPAddr ip, Port port, Port local_port)
     net_id_to_connect_.erase(connect_it);
   }
 
-  std::stringstream ss;
-  ss << "NetworkManager::OnDisconnect net_id = " << net_id;
-  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+  fDebugWithHead(DebugMessageType::BASE_NETWORK) << "NetworkManager::OnDisconnect net_id = " << net_id << fDebugEndl;
 
   for (auto handler : handler_list_)
     handler->OnDisconnect(net_id);
@@ -363,9 +346,7 @@ void NetworkManager::OnRecvPackage(NetworkID net_id, char *data, int length)
   if (net_id <= 0 || nullptr == data || length <= 0)
     return;
 
-  std::stringstream ss;
-  ss << "NetworkManager::OnRecvPackage net_id = " << net_id << ", data length = " << length;
-  DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+  fDebugWithHead(DebugMessageType::BASE_NETWORK) << "NetworkManager::OnRecvPackage net_id = " << net_id << ", data length = " << length << fDebugEndl;
 
   for (auto handler : handler_list_)
     handler->OnRecv(net_id, data, length);

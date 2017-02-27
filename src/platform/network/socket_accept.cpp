@@ -66,9 +66,7 @@ bool SocketAccept::Listen(Port port)
   
   while(true)
   {
-    std::stringstream ss;
-    ss << "SocketAccept::Listen start epoll wait";
-    DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+    fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Listen start epoll wait" << fDebugEndl;
 
     fd_count = epoll_wait(epoll_fd_, epoll_event_list_, MAX_EPOLL_EVENTS, -1);
     if (-1 == fd_count)
@@ -100,9 +98,7 @@ bool SocketAccept::Listen(Port port)
         sock_endpoint_map_[cur_sock] = cur_endpoint;
         endpoint_sock_map_[cur_endpoint] = cur_sock;
 
-        std::stringstream ss;
-        ss << "SocketAccept::Listen accept succ from - " << cur_endpoint.remote_ip_addr << ":" << cur_endpoint.remote_port;
-        DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+        fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Listen accept succ from - " << cur_endpoint.remote_ip_addr << ":" << cur_endpoint.remote_port << fDebugEndl;
 
         if (nullptr != handler_)
           handler_->OnAccept(cur_endpoint.remote_ip_addr, cur_endpoint.remote_port, cur_endpoint.local_port);
@@ -222,9 +218,7 @@ DWORD WINAPI SocketAccept::ServerWorkThread(LPVOID CompletionPortID)
     {
       get_queue_error = true;
 
-      std::stringstream ss;
-      ss << "SocketAccept::ServerWorkThread GetQueuedCompletionStatus failed. Error:" << GetLastError();
-      DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+      fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::ServerWorkThread GetQueuedCompletionStatus failed. Error:" << GetLastError() << fDebugEndl;
     }
 	
     if (nullptr == pIoData || nullptr == pHandleData)
@@ -250,9 +244,7 @@ DWORD WINAPI SocketAccept::ServerWorkThread(LPVOID CompletionPortID)
       {
         if (CloseHandle((HANDLE)pHandleData->socket) == SOCKET_ERROR)
         {
-          std::stringstream ss;
-          ss << "SocketAccept::ServerWorkThread Close socket failed. Error:" << GetLastError();
-          DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+          fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::ServerWorkThread Close socket failed. Error:" << GetLastError() << fDebugEndl;
           return 0;
         }
       }
@@ -285,9 +277,7 @@ DWORD WINAPI SocketAccept::ServerWorkThread(LPVOID CompletionPortID)
             {
               if (WSAGetLastError() != ERROR_IO_PENDING)
               {
-                std::stringstream ss;
-                ss << "SocketAccept::ServerWorkThread WSASend() failed. Error:" << GetLastError();
-                DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+                fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::ServerWorkThread WSASend() failed. Error:" << GetLastError() << fDebugEndl;
                 return 0;
               }
               else
@@ -311,9 +301,7 @@ DWORD WINAPI SocketAccept::ServerWorkThread(LPVOID CompletionPortID)
         {
           if (WSAGetLastError() != ERROR_IO_PENDING)
           {
-            std::stringstream ss;
-            ss << "SocketAccept::ServerWorkThread WSASend() failed. Error:" << GetLastError();
-            DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+            fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::ServerWorkThread WSASend() failed. Error:" << GetLastError() << fDebugEndl;
             return 0;
           }
         }
@@ -321,7 +309,7 @@ DWORD WINAPI SocketAccept::ServerWorkThread(LPVOID CompletionPortID)
     }
     else if (pIoData->type == IOCPHandleType::RECV)
     {
-	  // receive data, no matter receive complete or not,  trigger the event, and receive next data
+      // receive data, no matter receive complete or not,  trigger the event, and receive next data
       if (nullptr != pIoData->accept_ptr)
       {
         auto endpoint_it = pIoData->accept_ptr->sock_endpoint_map_.find(pHandleData->socket);
@@ -341,9 +329,7 @@ DWORD WINAPI SocketAccept::ServerWorkThread(LPVOID CompletionPortID)
       {
         if (WSAGetLastError() != ERROR_IO_PENDING)
         {
-          std::stringstream ss;
-          ss << "SocketAccept::ServerWorkThread WSARecv() failed. Error:" << GetLastError();
-          DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+          fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::ServerWorkThread WSARecv() failed. Error:" << GetLastError() << fDebugEndl;
           return false;
         }
       }
@@ -370,18 +356,14 @@ bool SocketAccept::Listen(Port port)
   DWORD ret;
   if (ret = WSAStartup(0x0202, &wsaData) != 0)
   {
-    std::stringstream ss;
-    ss << "SocketAccept::Listen WSAStartup failed. Error:" << ret;
-    DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+    fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Listen WSAStartup failed. Error:" << ret << fDebugEndl;
     return false;
   }
 
   completionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
   if (NULL == completionPort)
   {
-    std::stringstream ss;
-    ss << "SocketAccept::Listen CreateIoCompletionPort failed. Error:" << GetLastError();
-    DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+    fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Listen CreateIoCompletionPort failed. Error:" << GetLastError() << fDebugEndl;
     return false;
   }
 
@@ -395,9 +377,7 @@ bool SocketAccept::Listen(Port port)
     threadHandle = CreateThread(NULL, 0, SocketAccept::ServerWorkThread, completionPort, 0, &threadID);
     if (NULL == threadHandle)
     {
-      std::stringstream ss;
-      ss << "SocketAccept::Listen CreateThread failed. Error:" << GetLastError();
-      DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+      fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Listen CreateThread failed. Error:" << GetLastError() << fDebugEndl;
       return false;
     }
 
@@ -407,9 +387,7 @@ bool SocketAccept::Listen(Port port)
   SOCKET listenSocket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
   if (listenSocket == INVALID_SOCKET)
   {
-    std::stringstream ss;
-    ss << "SocketAccept::Listen WSASocket failed. Error:" << GetLastError();
-    DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+    fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Listen WSASocket failed. Error:" << GetLastError() << fDebugEndl;
     return false;
   }
 
@@ -420,17 +398,13 @@ bool SocketAccept::Listen(Port port)
 
   if (bind(listenSocket, (PSOCKADDR)&internetAddr, sizeof(internetAddr)) == SOCKET_ERROR)
   {
-    std::stringstream ss;
-    ss << "SocketAccept::Listen Bind failed. Error:" << GetLastError();
-    DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+    fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Listen Bind failed. Error:" << GetLastError() << fDebugEndl;
     return false;
   }
 
   if (listen(listenSocket, MAX_BACKLOG) == SOCKET_ERROR)
   {
-    std::stringstream ss;
-    ss << "SocketAccept::Listen listen failed. Error:" << GetLastError();
-    DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+    fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Listen listen failed. Error:" << GetLastError() << fDebugEndl;
     return false;
   }
 
@@ -445,36 +419,28 @@ bool SocketAccept::Listen(Port port)
     acceptSocket = WSAAccept(listenSocket, (sockaddr *)&client_sock_addr, &addr_size, NULL, 0);
     if (acceptSocket == SOCKET_ERROR)
     {
-      std::stringstream ss;
-      ss << "SocketAccept::Listen WSAAccept failed. Error:" << GetLastError();
-      DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+      fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Listen WSAAccept failed. Error:" << GetLastError() << fDebugEndl;
       return false;
     }
 
     pHandleData = (LPPER_HANDLE_DATA)GlobalAlloc(GPTR, sizeof(PER_HANDLE_DATA));
     if (NULL == pHandleData)
     {
-      std::stringstream ss;
-      ss << "SocketAccept::Listen GlobalAlloc(pHandleData) failed. Error:" << GetLastError();
-      DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+      fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Listen GlobalAlloc(pHandleData) failed. Error:" << GetLastError() << fDebugEndl;
       return false;
     }
 
     pHandleData->socket = acceptSocket;
     if (NULL == CreateIoCompletionPort((HANDLE)acceptSocket, completionPort, (ULONG_PTR)pHandleData, 0))
     {
-      std::stringstream ss;
-      ss << "SocketAccept::Listen CreateIoCompletionPort failed. Error:" << GetLastError();
-      DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+      fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Listen CreateIoCompletionPort failed. Error:" << GetLastError() << fDebugEndl;
       return false;
     }
 
     pIoData = (LPPER_IO_OPERATION_DATA)GlobalAlloc(GPTR, sizeof(PER_IO_OPERATEION_DATA));
     if (NULL == pIoData)
     {
-      std::stringstream ss;
-      ss << "SocketAccept::Listen GlobalAlloc(IoData) failed. Error:" << GetLastError();
-      DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+      fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Listen GlobalAlloc(IoData) failed. Error:" << GetLastError() << fDebugEndl;
       return false;
     }
 
@@ -490,9 +456,7 @@ bool SocketAccept::Listen(Port port)
     {
       if (WSAGetLastError() != ERROR_IO_PENDING)
       {
-        std::stringstream ss;
-        ss << "SocketAccept::Listen WSARecv failed. Error:" << GetLastError();
-        DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+        fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Listen WSARecv failed. Error:" << GetLastError() << fDebugEndl;
         return false;
       }
       else
@@ -524,17 +488,13 @@ bool SocketAccept::Write(IPAddr ip, Port port, const char *data, int length)
 {
   if (nullptr == data || length <= 0)
   {
-    std::stringstream ss;
-    ss << "SocketAccept::Write Error: data null or length is 0";
-    DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+    fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Write Error: data null or length is 0" << fDebugEndl;
     return false;
   }
 
   if (length > MAX_SOCKET_MSG_BUFF_LENGTH)
   {
-    std::stringstream ss;
-    ss << "SocketAccept::Write Error : length(" << length<<") > " << MAX_SOCKET_MSG_BUFF_LENGTH;
-    DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+    fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Write Error : length(" << length<<") > " << MAX_SOCKET_MSG_BUFF_LENGTH << fDebugEndl;
     return false;
   }
 
@@ -563,9 +523,7 @@ bool SocketAccept::Write(IPAddr ip, Port port, const char *data, int length)
   {
     if (WSAGetLastError() != ERROR_IO_PENDING)
     {
-      std::stringstream ss;
-      ss << "SocketAccept::Write WSASend() failed.Error:" << GetLastError();
-      DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+      fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Write WSASend() failed.Error:" << GetLastError() << fDebugEndl;
       return false;
     }
     else

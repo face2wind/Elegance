@@ -3,68 +3,118 @@
 
 #include <iostream>
 #include <signal.h>
+#include <cstring>
 
 namespace face2wind {
   
-  ISignal::ISignal(SignalType type)
-  {
-    this->AddType(type);
+ISignal::ISignal(SignalType type)
+{
+  this->AddType(type);
     
-    SignalManager_::GetInstance().Register(this);
-  }
+  SignalManager_::GetInstance().Register(this);
+}
   
-  ISignal::~ISignal()
-  {
-    SignalManager_::GetInstance().Unregister(this);
-  }
+ISignal::~ISignal()
+{
+  SignalManager_::GetInstance().Unregister(this);
+}
   
-  bool ISignal::CheckType(SignalType type)
-  {
-    return type_set_.find(type) != type_set_.end();
-  }
+bool ISignal::CheckType(SignalType type)
+{
+  mutex_.Lock();
+  bool has_type = (type_set_.find(type) != type_set_.end());
+  mutex_.Unlock();
   
-  void ISignal::AddType(SignalType type)
-  {
-    type_set_.insert(type);
-  }
+  return has_type;
+}
   
-  SignalManager_ & SignalManager_::GetInstance()
-  {
-    static SignalManager_ instance;
-    return instance;
-  }
+void ISignal::AddType(SignalType type)
+{
+  mutex_.Lock();
+  type_set_.insert(type);
+  mutex_.Unlock();
   
-  SignalManager_::SignalManager_()
-  {
-    std::cout<<"add signal"<<std::endl;
-    signal(SIGINT, SignalManager_::Handle);    
-  }
+  SignalManager_::GetInstance().UpdateSignal();
+}
+
+void ISignal::RemoveType(SignalType type)
+{
+  mutex_.Lock();
+  type_set_.erase(type);
+  mutex_.Unlock();
   
-  SignalManager_::~SignalManager_()
-  {
-    std::cout<<"remove signal"<<std::endl;
-    signal(SIGINT, SIG_DFL);
-  }
+  SignalManager_::GetInstance().UpdateSignal();
+}
+
+SignalManager_ & SignalManager_::GetInstance()
+{
+  static SignalManager_ instance;
+  return instance;
+}
   
-  void SignalManager_::Register(ISignal *signal)
-  {
-    if (signal_set_.find(signal) == signal_set_.end())
-       signal_set_.insert(signal);
-  }
+SignalManager_::SignalManager_()
+{
+  //signal(SIGINT, SignalManager_::Handle);
+}
   
-  void SignalManager_::Unregister(ISignal *signal)
-  {
-    if (signal_set_.find(signal) != signal_set_.end())
-       signal_set_.erase(signal);
-  }
+SignalManager_::~SignalManager_()
+{
+  //signal(SIGINT, SIG_DFL);
+}
   
-  void SignalManager_::Handle(int sig)
+void SignalManager_::Register(ISignal *signal)
+{
+  mutex_.Lock();
+  if (signal_set_.find(signal) == signal_set_.end())
+    signal_set_.insert(signal);
+  mutex_.Unlock();
+  
+  this->UpdateSignal();
+}
+  
+void SignalManager_::Unregister(ISignal *signal)
+{
+  mutex_.Lock();
+  if (signal_set_.find(signal) != signal_set_.end())
+    signal_set_.erase(signal);
+  mutex_.Unlock();
+  
+  this->UpdateSignal();
+}
+
+void SignalManager_::UpdateSignal()
+{
+  mutex_.Lock();
+  
+  auto &signal_set = SignalManager_::GetInstance().signal_set_;
+
+  int signal_type_count = (int)SignalType::COUNT;
+  bool signal_status_list[signal_type_count]; memset(signal_status_list, 0, sizeof(signal_status_list));
+  for (const auto &sig_p : signal_set)
+    for (int signal_type = 0; signal_type < signal_type_count; ++ signal_type)
+      if (sig_p->CheckType((SignalType)signal_type))
+        signal_status_list[signal_type] = true;
+
+  static const int real_signal_value_list[(int)SignalType::COUNT] = {SIGINT};
+  for (int signal_type = 0; signal_type < signal_type_count; ++ signal_type)
   {
-    auto &signal_set = SignalManager_::GetInstance().signal_set_;
-    for (const auto &sig_p : signal_set)
-    {
-      if(sig_p->CheckType(SignalType::INTERRUPT))
-	sig_p->OnReceive(SignalType::INTERRUPT);
-    }
+    signal(real_signal_value_list[signal_type], SIG_DFL);
+    if (signal_status_list[signal_type])
+      signal(signal_status_list[signal_type], SignalManager_::Handle);
   }
+
+  mutex_.Unlock();
+}
+  
+void SignalManager_::Handle(int sig)
+{
+  auto &signal_set = SignalManager_::GetInstance().signal_set_;
+  for (const auto &sig_p : signal_set)
+  {
+    if(sig_p->CheckType(SignalType::INTERRUPT))
+      sig_p->OnReceive(SignalType::INTERRUPT);
+  }
+}
+
+
 }

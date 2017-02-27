@@ -82,10 +82,8 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
   running_ = true;
   while(running_)
   {
-    std::stringstream ss;
-    ss << "SocketConnect::Connect start epoll wait";
-    DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
-
+    fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketConnect::Connect start epoll wait" << fDebugEndl;
+    
     fd_count = epoll_wait(epoll_fd_, epoll_event_list_, MAX_EPOLL_EVENTS, -1);
     if (-1 == fd_count)
       return false;
@@ -174,17 +172,13 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
   int Ret;
   if ((Ret = WSAStartup(MAKEWORD(2, 2), &wsaData)) != 0)
   {
-    std::stringstream ss;
-    ss << "SocketConnect::Connect Error:WSAStartup failed with " << Ret;
-    DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+    fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketConnect::Connect Error:WSAStartup failed with " << Ret << fDebugEndl;
     return false;
   }
 
   if ((local_sock_ = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == INVALID_SOCKET)
   {
-    std::stringstream ss;
-    ss << "SocketConnect::Connect Error:socket failed with " << WSAGetLastError();
-    DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+    fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketConnect::Connect Error:socket failed with " << WSAGetLastError() << fDebugEndl;
     WSACleanup();
     return false;
   }
@@ -196,9 +190,7 @@ bool SocketConnect::Connect(IPAddr ip, Port port)
 
   if (SOCKET_ERROR == connect(local_sock_, (SOCKADDR *)&ServerAddr, sizeof(ServerAddr)))
   {
-    std::stringstream ss;
-    ss << "SocketConnect::Connect Error:connect failed with " << WSAGetLastError();
-    DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
+    fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketConnect::Connect Error:connect failed with " << WSAGetLastError() << fDebugEndl;
     closesocket(local_sock_);
     WSACleanup();
     return false;
@@ -245,10 +237,8 @@ bool SocketConnect::Write(const char *data, int length)
 
   if (SOCKET_ERROR == send(local_sock_, data, length, 0))
   {
-    std::stringstream ss;
-    ss << "SocketConnect::Write Error:send failed with " << WSAGetLastError();
-    DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
-
+    fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketConnect::Write Error:send failed with " << WSAGetLastError() << fDebugEndl;
+    
     running_ = false;
     return false;
   }
