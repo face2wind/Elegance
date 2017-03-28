@@ -15,7 +15,7 @@ Thread::~Thread()
 
 bool Thread::Run(IThreadTask *func, unsigned int stack_size)
 {
-	if (0 != thread_id_)
+	if (nullptr == func || 0 != thread_id_)
 		return false;
 
   pthread_attr_t attr;
@@ -28,6 +28,12 @@ bool Thread::Run(IThreadTask *func, unsigned int stack_size)
 
   if (0 == ret)
 	running_ = true;
+  else
+  {
+	  cur_task_ = nullptr;
+	  delete func;
+	  return false;
+  }
 
   return (0 == ret);
 }
@@ -108,13 +114,17 @@ Thread::~Thread()
 
 bool Thread::Run(IThreadTask *func, unsigned int stack_size)
 {
-  if (nullptr != thread_handle_)
+  if (nullptr == func || nullptr != thread_handle_ )
     return false;
 
   cur_task_ = func;
   thread_handle_ = CreateThread(nullptr, stack_size, &Thread::StartRoutine, this, 0, &thread_id_);
   if (nullptr == thread_handle_)
-    return false;
+  {
+	  cur_task_ = nullptr;
+	  delete func;
+	  return false;
+  }
 
   running_ = true;
   return true;

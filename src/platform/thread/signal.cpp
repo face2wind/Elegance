@@ -88,7 +88,7 @@ void SignalManager_::UpdateSignal()
   
   auto &signal_set = SignalManager_::GetInstance().signal_set_;
 
-  int signal_type_count = (int)SignalType::COUNT;
+  const int signal_type_count = (int)SignalType::COUNT;
   bool signal_status_list[signal_type_count]; memset(signal_status_list, 0, sizeof(signal_status_list));
   for (const auto &sig_p : signal_set)
     for (int signal_type = 0; signal_type < signal_type_count; ++ signal_type)
