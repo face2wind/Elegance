@@ -179,7 +179,7 @@ ThreadID Thread::GetCurrentThreadID()
 
 ThreadReturn CALLBACK Thread::StartRoutine(void *param)
 {
-  Thread *thread = (Thread*)param;
+  Thread *thread = static_cast<Thread*>(param);
   if (nullptr == thread || nullptr == thread->cur_task_)
     return 0;
 

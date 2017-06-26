@@ -14,7 +14,7 @@ class ByteArray
 {
  public:
   ByteArray() : cur_endian_(Endian::FW_LITTLE_ENDIAN) {}
-  ~ByteArray() {}
+  virtual ~ByteArray() {}
 
   void SetEndian(Endian edian){cur_endian_ = edian;}
   Endian GetEndian(){return cur_endian_;}

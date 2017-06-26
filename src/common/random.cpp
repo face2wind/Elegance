@@ -23,7 +23,7 @@ int Random::RandomNum(int min_num, int max_num)
 
   if (!has_set_seed)
   {
-    srand((unsigned int)time(NULL));
+    srand((unsigned int)time(nullptr));
     has_set_seed = true;
   }
 

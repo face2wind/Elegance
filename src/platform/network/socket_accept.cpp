@@ -1,13 +1,10 @@
 #include "socket_def.hpp"
 #include "socket_accept.hpp"
-
 #include "common/debug_message.hpp"
-
-#include <sstream>
 
 namespace face2wind {
 
-SocketAccept::SocketAccept() : handler_(NULL), listening_(false)
+SocketAccept::SocketAccept() : handler_(nullptr), listening_(false), local_port_(0)
 {
 }
 
@@ -205,8 +202,8 @@ DWORD WINAPI SocketAccept::ServerWorkThread(LPVOID CompletionPortID)
 {
   HANDLE complationPort = (HANDLE)CompletionPortID;
   DWORD bytesTransferred = 0;
-  LPPER_HANDLE_DATA pHandleData= NULL;
-  LPPER_IO_OPERATION_DATA pIoData = NULL;
+  LPPER_HANDLE_DATA pHandleData= nullptr;
+  LPPER_IO_OPERATION_DATA pIoData = nullptr;
   DWORD sendBytes = 0;
   DWORD recvBytes = 0;
   DWORD flags;
@@ -273,7 +270,7 @@ DWORD WINAPI SocketAccept::ServerWorkThread(LPVOID CompletionPortID)
 
           if (nullptr != new_pio_data_ptr)
           {
-            if (WSASend(pHandleData->socket, &(new_pio_data_ptr->databuff), 1, &sendBytes, 0, &(new_pio_data_ptr->overlapped), NULL) == SOCKET_ERROR)
+            if (WSASend(pHandleData->socket, &(new_pio_data_ptr->databuff), 1, &sendBytes, 0, &(new_pio_data_ptr->overlapped), nullptr) == SOCKET_ERROR)
             {
               if (WSAGetLastError() != ERROR_IO_PENDING)
               {
@@ -282,7 +279,7 @@ DWORD WINAPI SocketAccept::ServerWorkThread(LPVOID CompletionPortID)
               }
               else
               {
-                pIoData->accept_ptr->send_queue_map_[pHandleData->socket].push(NULL);
+                pIoData->accept_ptr->send_queue_map_[pHandleData->socket].push(nullptr);
               }
             }
           }
@@ -297,7 +294,7 @@ DWORD WINAPI SocketAccept::ServerWorkThread(LPVOID CompletionPortID)
         pIoData->databuff.len -= bytesTransferred;
         ZeroMemory(&(pIoData->overlapped), sizeof(pIoData->overlapped));
 
-        if (WSASend(pHandleData->socket, &(pIoData->databuff), 1, &sendBytes, 0, &(pIoData->overlapped), NULL) == SOCKET_ERROR)
+        if (WSASend(pHandleData->socket, &(pIoData->databuff), 1, &sendBytes, 0, &(pIoData->overlapped), nullptr) == SOCKET_ERROR)
         {
           if (WSAGetLastError() != ERROR_IO_PENDING)
           {
@@ -325,7 +322,7 @@ DWORD WINAPI SocketAccept::ServerWorkThread(LPVOID CompletionPortID)
       recvBytes = bytesTransferred;
 
       flags = 0;
-      if (WSARecv(pHandleData->socket, &(pIoData->databuff), 1, &recvBytes, &flags, &(pIoData->overlapped), NULL) == SOCKET_ERROR)
+      if (WSARecv(pHandleData->socket, &(pIoData->databuff), 1, &recvBytes, &flags, &(pIoData->overlapped), nullptr) == SOCKET_ERROR)
       {
         if (WSAGetLastError() != ERROR_IO_PENDING)
         {
@@ -354,14 +351,14 @@ bool SocketAccept::Listen(Port port)
 
   WSADATA wsaData;
   DWORD ret;
-  if (ret = WSAStartup(0x0202, &wsaData) != 0)
+  if ((ret = WSAStartup(0x0202, &wsaData) != 0))
   {
     fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Listen WSAStartup failed. Error:" << ret << fDebugEndl;
     return false;
   }
 
-  completionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
-  if (NULL == completionPort)
+  completionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, 0, 0);
+  if (nullptr == completionPort)
   {
     fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Listen CreateIoCompletionPort failed. Error:" << GetLastError() << fDebugEndl;
     return false;
@@ -374,8 +371,8 @@ bool SocketAccept::Listen(Port port)
   for (DWORD i = 0; i < (mySysInfo.dwNumberOfProcessors * 2 + 1); ++i)
   {
     HANDLE threadHandle;
-    threadHandle = CreateThread(NULL, 0, SocketAccept::ServerWorkThread, completionPort, 0, &threadID);
-    if (NULL == threadHandle)
+    threadHandle = CreateThread(nullptr, 0, SocketAccept::ServerWorkThread, completionPort, 0, &threadID);
+    if (nullptr == threadHandle)
     {
       fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Listen CreateThread failed. Error:" << GetLastError() << fDebugEndl;
       return false;
@@ -384,7 +381,7 @@ bool SocketAccept::Listen(Port port)
     CloseHandle(threadHandle);
   }
 
-  SOCKET listenSocket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+  SOCKET listenSocket = WSASocket(AF_INET, SOCK_STREAM, 0, nullptr, 0, WSA_FLAG_OVERLAPPED);
   if (listenSocket == INVALID_SOCKET)
   {
     fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Listen WSASocket failed. Error:" << GetLastError() << fDebugEndl;
@@ -416,32 +413,32 @@ bool SocketAccept::Listen(Port port)
     SOCKET acceptSocket;
     SOCKADDR_IN client_sock_addr;
     int addr_size = sizeof(client_sock_addr);
-    acceptSocket = WSAAccept(listenSocket, (sockaddr *)&client_sock_addr, &addr_size, NULL, 0);
+    acceptSocket = WSAAccept(listenSocket, (sockaddr *)&client_sock_addr, &addr_size, nullptr, 0);
     if (acceptSocket == SOCKET_ERROR)
     {
       fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Listen WSAAccept failed. Error:" << GetLastError() << fDebugEndl;
-      return false;
+	  break;
     }
 
     pHandleData = (LPPER_HANDLE_DATA)GlobalAlloc(GPTR, sizeof(PER_HANDLE_DATA));
-    if (NULL == pHandleData)
+    if (nullptr == pHandleData)
     {
       fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Listen GlobalAlloc(pHandleData) failed. Error:" << GetLastError() << fDebugEndl;
-      return false;
+	  break;
     }
 
     pHandleData->socket = acceptSocket;
-    if (NULL == CreateIoCompletionPort((HANDLE)acceptSocket, completionPort, (ULONG_PTR)pHandleData, 0))
+    if (nullptr == CreateIoCompletionPort((HANDLE)acceptSocket, completionPort, (ULONG_PTR)pHandleData, 0))
     {
       fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Listen CreateIoCompletionPort failed. Error:" << GetLastError() << fDebugEndl;
-      return false;
+	  break;
     }
 
     pIoData = (LPPER_IO_OPERATION_DATA)GlobalAlloc(GPTR, sizeof(PER_IO_OPERATEION_DATA));
-    if (NULL == pIoData)
+    if (nullptr == pIoData)
     {
       fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Listen GlobalAlloc(IoData) failed. Error:" << GetLastError() << fDebugEndl;
-      return false;
+	  break;
     }
 
     ZeroMemory(&(pIoData->overlapped), sizeof(pIoData->overlapped));
@@ -452,12 +449,12 @@ bool SocketAccept::Listen(Port port)
     pIoData->accept_ptr = this;
 
     flags = 0;
-    if (WSARecv(acceptSocket, &(pIoData->databuff), 1, &recvBytes, &flags, &(pIoData->overlapped), NULL) == SOCKET_ERROR)
+    if (WSARecv(acceptSocket, &(pIoData->databuff), 1, &recvBytes, &flags, &(pIoData->overlapped), nullptr) == SOCKET_ERROR)
     {
       if (WSAGetLastError() != ERROR_IO_PENDING)
       {
         fDebugWithHead(DebugMessageType::BASE_NETWORK) << "SocketAccept::Listen WSARecv failed. Error:" << GetLastError() << fDebugEndl;
-        return false;
+        break;
       }
       else
       {
@@ -481,7 +478,7 @@ bool SocketAccept::Listen(Port port)
   local_port_ = 0;
   CloseHandle(completionPort);
   listening_ = false;
-  return true;
+  return false;
 }
 
 bool SocketAccept::Write(IPAddr ip, Port port, const char *data, int length)
@@ -506,7 +503,7 @@ bool SocketAccept::Write(IPAddr ip, Port port, const char *data, int length)
   DWORD recvBytes = 0;
 
   LPPER_IO_OPERATION_DATA pIoData = (LPPER_IO_OPERATION_DATA)GlobalAlloc(GPTR, sizeof(PER_IO_OPERATEION_DATA));
-  if (NULL == pIoData)
+  if (nullptr == pIoData)
     return false;
   ZeroMemory(&(pIoData->overlapped), sizeof(pIoData->overlapped));
   memcpy(pIoData->buffer, data, length);
@@ -519,7 +516,7 @@ bool SocketAccept::Write(IPAddr ip, Port port, const char *data, int length)
   {
     send_queue_map_[cur_sock].push(pIoData);
   }
-  else if (WSASend(cur_sock, &(pIoData->databuff), 1, &recvBytes, 0, &(pIoData->overlapped), NULL) == SOCKET_ERROR)
+  else if (WSASend(cur_sock, &(pIoData->databuff), 1, &recvBytes, 0, &(pIoData->overlapped), nullptr) == SOCKET_ERROR)
   {
     if (WSAGetLastError() != ERROR_IO_PENDING)
     {
@@ -528,7 +525,7 @@ bool SocketAccept::Write(IPAddr ip, Port port, const char *data, int length)
     }
     else
     {
-      send_queue_map_[cur_sock].push(NULL);
+      send_queue_map_[cur_sock].push(nullptr);
       //std::cout << "WSASend() io pending" << std::endl;
       //return false;
     }

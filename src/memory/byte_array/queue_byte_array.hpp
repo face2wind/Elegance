@@ -1,7 +1,6 @@
 #pragma once
 
 #include <deque>
-#include <string>
 
 #include "byte_array.hpp"
 

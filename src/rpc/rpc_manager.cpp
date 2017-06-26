@@ -1,9 +1,7 @@
 #include "rpc_manager.hpp"
 #include "network/network_manager.hpp"
 #include "common/debug_message.hpp"
-
 #include <sstream>
-#include <cstring>
 #include <limits.h>
 
 namespace face2wind
@@ -62,7 +60,7 @@ const char * RPCSession::SyncCall(const char * data, int length, int & return_le
 
 int RPCSession::GetRequestID()
 {
-  int new_request_id(0);
+  int new_request_id;
 
   free_request_id_lock_.Lock();
 
@@ -95,7 +93,7 @@ void RPCSession::OnRecv(const char *data, int length)
     if (request_it != request_list_.end())
     {
       IRpcRequest *request = request_it->second;
-      if (NULL != request)
+      if (nullptr != request)
       {
         request->OnCallBack(data + sizeof(RPCMessageHeader), length - sizeof(RPCMessageHeader));
         delete request;
@@ -124,7 +122,7 @@ void RPCSession::OnRecv(const char *data, int length)
         if (handle_result != 0)
           break;
 
-        if (NULL == result_data || result_data_len <= 0)
+        if (nullptr == result_data || result_data_len <= 0)
           break;
 
         int total_send_len = result_data_len + sizeof(RPCMessageHeader);

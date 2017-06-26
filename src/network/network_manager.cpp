@@ -50,14 +50,14 @@ void NetworkManager::UnregistHandler(INetworkHandler *handler)
 void NetworkManagerListenTask::Run()
 {
   NetworkManager *mgr = (NetworkManager*)param_;
-  if (NULL != mgr)
+  if (nullptr != mgr)
     mgr->ListenThread(port);
 }
 
 void NetworkManagerConnectTask::Run()
 {
   NetworkManager *mgr = (NetworkManager*)param_;
-  if (NULL != mgr)
+  if (nullptr != mgr)
     mgr->ConnectThread(ip, port);
 }
 
@@ -150,7 +150,7 @@ Thread * NetworkManager::GetFreeThread()
 
 NetworkID NetworkManager::GetFreeNetID()
 {
-  NetworkID tmp_net_id = 0;
+  NetworkID tmp_net_id;
 
   free_net_id_lock_.Lock();
   if (!free_net_id_list_.empty())
@@ -174,9 +174,10 @@ void NetworkManager::ListenThread(Port port)
 {
   SocketAccept *accept = new SocketAccept();
   accept->ResetHandler(this);
-  //accept_list_mutex_.Lock();
+
+  accept_list_mutex_.Lock();
   accept_list_.insert(accept);
-  //accept_list_mutex_.Unlock();
+  accept_list_mutex_.Unlock();
 
   fDebugWithHead(DebugMessageType::BASE_NETWORK) << "NetworkManager::ListenThread port = " << port << fDebugEndl;
 
@@ -188,7 +189,10 @@ void NetworkManager::ListenThread(Port port)
       handler->OnListenFail(port);
   }
 
+  accept_list_mutex_.Lock();
   accept_list_.erase(accept);
+  accept_list_mutex_.Unlock();
+
   delete accept;
 }
 
@@ -197,9 +201,9 @@ void NetworkManager::ConnectThread(IPAddr ip, Port port)
   SocketConnect *connect = new SocketConnect();
   connect->ResetHandler(this);
 	
-  //accept_list_mutex_.Lock();
+  connect_list_mutex_.Lock();
   connect_list_.insert(connect);
-  //accept_list_mutex_.Unlock();
+  connect_list_mutex_.Unlock();
 
   fDebugWithHead(DebugMessageType::BASE_NETWORK) << "NetworkManager::ConnectThread remote = " << ip << ":" << port << fDebugEndl;
 
@@ -211,7 +215,9 @@ void NetworkManager::ConnectThread(IPAddr ip, Port port)
       handler->OnConnect(ip, port, connect->GetLocalPort(), false, 0);
   }
 
+  connect_list_mutex_.Lock();
   connect_list_.erase(connect);
+  connect_list_mutex_.Unlock();
   delete connect;
 }
 
@@ -219,6 +225,7 @@ void NetworkManager::OnAccept(IPAddr remote_ip, Port remote_port, Port local_por
 {
   NetworkID net_id = this->GetFreeNetID();
 
+  accept_list_mutex_.Lock();
   for (auto accept : accept_list_)
   {
     if (accept->CheckOnHandle(remote_ip, remote_port))
@@ -233,6 +240,7 @@ void NetworkManager::OnAccept(IPAddr remote_ip, Port remote_port, Port local_por
       net_id_endpoint_lock_.Unlock();
     }
   }
+  accept_list_mutex_.Unlock();
 
   fDebugWithHead(DebugMessageType::BASE_NETWORK) << "NetworkManager::OnAccept remote = " << remote_ip << ":" << remote_port << ", local_port = " << local_port << ", net_id = "<< net_id << fDebugEndl;
 
@@ -244,6 +252,7 @@ void NetworkManager::OnConnect(IPAddr remote_ip, Port remote_port, Port local_po
 {
   NetworkID net_id = this->GetFreeNetID();
 
+  connect_list_mutex_.Lock();
   for (auto connect : connect_list_)
   {
     if (connect->CheckOnHandle(remote_ip, remote_port))
@@ -258,6 +267,7 @@ void NetworkManager::OnConnect(IPAddr remote_ip, Port remote_port, Port local_po
       net_id_endpoint_lock_.Unlock();
     }
   }
+  connect_list_mutex_.Unlock();
 
   fDebugWithHead(DebugMessageType::BASE_NETWORK) << "NetworkManager::OnConnect remote = " << remote_ip << ":" << remote_port << ", local_port = " << local_port << ", net_id = " << net_id << fDebugEndl;
 

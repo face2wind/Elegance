@@ -20,6 +20,9 @@ class NetworkManager;
 class INetworkHandler
 {
  public:
+  INetworkHandler() {}
+  virtual ~INetworkHandler() {}
+
   virtual void OnListenFail(Port port) = 0;
   virtual void OnAccept(IPAddr ip, Port port, Port local_port, NetworkID net_id) = 0;
   virtual void OnConnect(IPAddr ip, Port port, Port local_port, bool success, NetworkID net_id) = 0;

@@ -25,7 +25,7 @@ typedef DWORD ThreadReturn;
 class IThreadTask
 {
  public:
-  IThreadTask() {}
+  IThreadTask(): param_(nullptr) {}
   virtual ~IThreadTask() {}
 
   void SetParam(void *param) { param_ = param; }

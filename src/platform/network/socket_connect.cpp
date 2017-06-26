@@ -1,12 +1,9 @@
 #include "socket_connect.hpp"
-
 #include "common/debug_message.hpp"
-
-#include <sstream>
 
 namespace face2wind {
 
-SocketConnect::SocketConnect() : handler_(NULL), running_(false)
+SocketConnect::SocketConnect() : handler_(nullptr), running_(false), remote_port_(0), local_port_(0), local_sock_(0)
 {
 }
 

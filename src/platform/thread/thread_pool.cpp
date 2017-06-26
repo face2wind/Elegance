@@ -152,7 +152,7 @@ bool ThreadPool::AddTask(IThreadTask *task)
 IThreadTask * ThreadPool::GetNextTask()
 {
   if (!is_running_)
-    return NULL;
+    return nullptr;
   
   mutex_.Lock();
   
@@ -177,6 +177,7 @@ IThreadTask * ThreadPool::GetNextTask()
         //std::cout<<"handle manual"<<std::endl;
         ResetEvent(handle_list_[EVENT_TYPE_MANUAL_RESET]);
         break;
+    default: break;
     }
   }
   mutex_.Lock();
@@ -198,6 +199,14 @@ IThreadTask * ThreadPool::GetNextTask()
   
   mutex_.Unlock();
   return task;
+}
+
+void ThreadPool::WaitALlThread()
+{
+	for (auto th : thread_set_)
+	{
+		th->Join();
+	}
 }
 
 }

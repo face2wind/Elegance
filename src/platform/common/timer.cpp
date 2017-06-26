@@ -25,14 +25,14 @@ void Timer::Sleep(unsigned int milliseconds)
 
 time_t Timer::GetNowTimeS()
 {
-  return time(NULL);
+  return time(nullptr);
 }
 
 unsigned long long Timer::GetNowTimeMS()
 {
 #ifdef __LINUX__
   struct timeval now_time;
-  gettimeofday(&now_time, NULL);
+  gettimeofday(&now_time, nullptr);
   return now_time.tv_sec * 1000 + now_time.tv_usec / 1000;
 #endif
 #ifdef __WINDOWS__

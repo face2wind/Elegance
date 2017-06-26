@@ -42,6 +42,8 @@ class ThreadPool
   bool AddTask(IThreadTask *task);
   IThreadTask * GetNextTask();
 
+  void WaitALlThread();
+
  private:
   bool is_running_;
 
