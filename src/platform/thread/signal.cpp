@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <signal.h>
+#include <cstring>
 
 namespace face2wind {
   

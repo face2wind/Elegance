@@ -3,6 +3,7 @@
 #include "common/debug_message.hpp"
 #include <sstream>
 #include <limits.h>
+#include <cstring>
 
 namespace face2wind
 {
