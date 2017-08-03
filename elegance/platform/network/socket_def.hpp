@@ -1,7 +1,6 @@
 #pragma once
 
 #include <platform/platform_def.hpp>
-#include <iostream>
 #include <string>
 
 namespace face2wind {
@@ -30,9 +29,9 @@ class SocketConnect;
 
 enum class IOCPHandleType
 {
-  SEND,
-    RECV
-      };
+	SEND,
+	RECV
+};
 
 typedef struct
 {

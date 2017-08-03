@@ -4,8 +4,6 @@
 #include <platform/common/system_info.hpp>
 #include <platform/thread/thread_pool.hpp>
 
-//using namespace std;
-
 namespace face2wind {
   
 ThreadPoolSignal::ThreadPoolSignal(ThreadPool *pool) : ISignal(SignalType::INTERRUPT)

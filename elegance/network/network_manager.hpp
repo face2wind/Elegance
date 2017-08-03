@@ -5,8 +5,6 @@
 #include <stack>
 
 #include <platform/network/socket_def.hpp>
-
-#include <platform/thread/mutex.hpp>
 #include <platform/thread/thread_pool.hpp>
 #include <network/network_packer_factory.hpp>
 

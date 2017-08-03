@@ -3,10 +3,10 @@ project(Elegance)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -ggdb -O0 -pthread -Wall -Werror")
 
-file(GLOB_RECURSE SOURCE_FILES ./src/*.cpp)
+file(GLOB_RECURSE SOURCE_FILES ./elegance/*.cpp)
 
 include_directories(
-  ./src
+  ./elegance
   )
 
 ADD_LIBRARY(Elegance_share SHARED ${SOURCE_FILES})

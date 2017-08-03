@@ -31,9 +31,6 @@ void NetworkManager::RegistHandler(INetworkHandler *handler)
 
   handler_list_.insert(handler);
 
-  //  std::stringstream ss;
-  //ss << "NetworkManager::RegistHandler(" << handler << ")";
-  //DebugMessage::GetInstance().ShowMessage(DebugMessageType::BASE_NETWORK, ss.str());
   fDebugWithHead(DebugMessageType::BASE_NETWORK) << "NetworkManager::RegistHandler()" << fDebugEndl;
 }
 

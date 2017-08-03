@@ -1,174 +1,174 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="src">
+    <Filter Include="elegance">
       <UniqueIdentifier>{eb794f77-61db-44a9-b524-0c8e1bbad250}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\platform">
+    <Filter Include="elegance\platform">
       <UniqueIdentifier>{0d162a9c-b4e4-47be-a8ac-501ab8a24e55}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\platform\thread">
+    <Filter Include="elegance\platform\thread">
       <UniqueIdentifier>{1ded653e-0b73-4c60-a1de-7141553ac41e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\platform\common">
+    <Filter Include="elegance\platform\common">
       <UniqueIdentifier>{b59200f4-e1ec-45bb-a276-ce4f26b9a038}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\common">
+    <Filter Include="elegance\common">
       <UniqueIdentifier>{30b16e8e-9e0a-4415-acba-8facc1d8c835}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\platform\network">
+    <Filter Include="elegance\platform\network">
       <UniqueIdentifier>{70de25f9-d653-47e5-b8ef-4141bdb42304}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\network">
+    <Filter Include="elegance\network">
       <UniqueIdentifier>{6113aed6-6ac3-40f2-8f95-42444dd64b52}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\network\network_packer">
+    <Filter Include="elegance\network\network_packer">
       <UniqueIdentifier>{7ffd65c8-5d92-40f2-93ae-1ad567ad64a7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\memory">
+    <Filter Include="elegance\memory">
       <UniqueIdentifier>{0c42a0af-595b-4d58-a6d4-6088f346c86e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\rpc">
+    <Filter Include="elegance\rpc">
       <UniqueIdentifier>{fc88facc-ed48-4b30-8687-3d48be6b83a8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\memory\byte_array">
+    <Filter Include="elegance\memory\byte_array">
       <UniqueIdentifier>{b627f1c9-723a-403e-84f8-27077d8304ed}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\memory\serialize">
+    <Filter Include="elegance\memory\serialize">
       <UniqueIdentifier>{09e3b6b6-4667-4d53-9a24-876a5b618678}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\elegance.hpp">
-      <Filter>src</Filter>
+    <ClInclude Include="..\elegance\elegance.hpp">
+      <Filter>elegance</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\platform\platform_def.hpp">
-      <Filter>src\platform</Filter>
+    <ClInclude Include="..\elegance\platform\platform_def.hpp">
+      <Filter>elegance\platform</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\platform\thread\mutex.hpp">
-      <Filter>src\platform\thread</Filter>
+    <ClInclude Include="..\elegance\platform\thread\mutex.hpp">
+      <Filter>elegance\platform\thread</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\platform\thread\signal.hpp">
-      <Filter>src\platform\thread</Filter>
+    <ClInclude Include="..\elegance\platform\thread\signal.hpp">
+      <Filter>elegance\platform\thread</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\platform\thread\thread.hpp">
-      <Filter>src\platform\thread</Filter>
+    <ClInclude Include="..\elegance\platform\thread\thread.hpp">
+      <Filter>elegance\platform\thread</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\platform\thread\thread_pool.hpp">
-      <Filter>src\platform\thread</Filter>
+    <ClInclude Include="..\elegance\platform\thread\thread_pool.hpp">
+      <Filter>elegance\platform\thread</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\platform\common\system_info.hpp">
-      <Filter>src\platform\common</Filter>
+    <ClInclude Include="..\elegance\platform\common\system_info.hpp">
+      <Filter>elegance\platform\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\platform\common\timer.hpp">
-      <Filter>src\platform\common</Filter>
+    <ClInclude Include="..\elegance\platform\common\timer.hpp">
+      <Filter>elegance\platform\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\common\random.hpp">
-      <Filter>src\common</Filter>
+    <ClInclude Include="..\elegance\common\random.hpp">
+      <Filter>elegance\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\network\network_manager.hpp">
-      <Filter>src\network</Filter>
+    <ClInclude Include="..\elegance\network\network_manager.hpp">
+      <Filter>elegance\network</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\network\network_packer_factory.hpp">
-      <Filter>src\network</Filter>
+    <ClInclude Include="..\elegance\network\network_packer_factory.hpp">
+      <Filter>elegance\network</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\platform\network\socket_accept.hpp">
-      <Filter>src\platform\network</Filter>
+    <ClInclude Include="..\elegance\platform\network\socket_accept.hpp">
+      <Filter>elegance\platform\network</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\platform\network\socket_connect.hpp">
-      <Filter>src\platform\network</Filter>
+    <ClInclude Include="..\elegance\platform\network\socket_connect.hpp">
+      <Filter>elegance\platform\network</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\platform\network\socket_def.hpp">
-      <Filter>src\platform\network</Filter>
+    <ClInclude Include="..\elegance\platform\network\socket_def.hpp">
+      <Filter>elegance\platform\network</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\network\network_packer\network_packer_fixhead.hpp">
-      <Filter>src\network\network_packer</Filter>
+    <ClInclude Include="..\elegance\network\network_packer\network_packer_fixhead.hpp">
+      <Filter>elegance\network\network_packer</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\memory\flexible_buffer.hpp">
-      <Filter>src\memory</Filter>
+    <ClInclude Include="..\elegance\memory\flexible_buffer.hpp">
+      <Filter>elegance\memory</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\rpc\rpc_manager.hpp">
-      <Filter>src\rpc</Filter>
+    <ClInclude Include="..\elegance\rpc\rpc_manager.hpp">
+      <Filter>elegance\rpc</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\common\debug_message.hpp">
-      <Filter>src\common</Filter>
+    <ClInclude Include="..\elegance\common\debug_message.hpp">
+      <Filter>elegance\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\memory\mempool.hpp">
-      <Filter>src\memory</Filter>
+    <ClInclude Include="..\elegance\memory\mempool.hpp">
+      <Filter>elegance\memory</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\common\tools.hpp">
-      <Filter>src\common</Filter>
+    <ClInclude Include="..\elegance\common\tools.hpp">
+      <Filter>elegance\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\memory\byte_array\byte_array.hpp">
-      <Filter>src\memory\byte_array</Filter>
+    <ClInclude Include="..\elegance\memory\byte_array\byte_array.hpp">
+      <Filter>elegance\memory\byte_array</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\memory\byte_array\queue_byte_array.hpp">
-      <Filter>src\memory\byte_array</Filter>
+    <ClInclude Include="..\elegance\memory\byte_array\queue_byte_array.hpp">
+      <Filter>elegance\memory\byte_array</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\memory\serialize\serialize_base.hpp">
-      <Filter>src\memory\serialize</Filter>
+    <ClInclude Include="..\elegance\memory\serialize\serialize_base.hpp">
+      <Filter>elegance\memory\serialize</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\memory\serialize\serialize_manager.hpp">
-      <Filter>src\memory\serialize</Filter>
+    <ClInclude Include="..\elegance\memory\serialize\serialize_manager.hpp">
+      <Filter>elegance\memory\serialize</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\platform\thread\mutex.cpp">
-      <Filter>src\platform\thread</Filter>
+    <ClCompile Include="..\elegance\platform\thread\mutex.cpp">
+      <Filter>elegance\platform\thread</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\platform\thread\signal.cpp">
-      <Filter>src\platform\thread</Filter>
+    <ClCompile Include="..\elegance\platform\thread\signal.cpp">
+      <Filter>elegance\platform\thread</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\platform\thread\thread.cpp">
-      <Filter>src\platform\thread</Filter>
+    <ClCompile Include="..\elegance\platform\thread\thread.cpp">
+      <Filter>elegance\platform\thread</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\platform\thread\thread_pool.cpp">
-      <Filter>src\platform\thread</Filter>
+    <ClCompile Include="..\elegance\platform\thread\thread_pool.cpp">
+      <Filter>elegance\platform\thread</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\platform\common\system_info.cpp">
-      <Filter>src\platform\common</Filter>
+    <ClCompile Include="..\elegance\platform\common\system_info.cpp">
+      <Filter>elegance\platform\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\platform\common\timer.cpp">
-      <Filter>src\platform\common</Filter>
+    <ClCompile Include="..\elegance\platform\common\timer.cpp">
+      <Filter>elegance\platform\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\common\random.cpp">
-      <Filter>src\common</Filter>
+    <ClCompile Include="..\elegance\common\random.cpp">
+      <Filter>elegance\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\network\network_manager.cpp">
-      <Filter>src\network</Filter>
+    <ClCompile Include="..\elegance\network\network_manager.cpp">
+      <Filter>elegance\network</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\network\network_packer_factory.cpp">
-      <Filter>src\network</Filter>
+    <ClCompile Include="..\elegance\network\network_packer_factory.cpp">
+      <Filter>elegance\network</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\platform\network\socket_accept.cpp">
-      <Filter>src\platform\network</Filter>
+    <ClCompile Include="..\elegance\platform\network\socket_accept.cpp">
+      <Filter>elegance\platform\network</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\platform\network\socket_connect.cpp">
-      <Filter>src\platform\network</Filter>
+    <ClCompile Include="..\elegance\platform\network\socket_connect.cpp">
+      <Filter>elegance\platform\network</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\network\network_packer\network_packer_fixhead.cpp">
-      <Filter>src\network\network_packer</Filter>
+    <ClCompile Include="..\elegance\network\network_packer\network_packer_fixhead.cpp">
+      <Filter>elegance\network\network_packer</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\rpc\rpc_manager.cpp">
-      <Filter>src\rpc</Filter>
+    <ClCompile Include="..\elegance\rpc\rpc_manager.cpp">
+      <Filter>elegance\rpc</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\common\debug_message.cpp">
-      <Filter>src\common</Filter>
+    <ClCompile Include="..\elegance\common\debug_message.cpp">
+      <Filter>elegance\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\memory\mempool.cpp">
-      <Filter>src\memory</Filter>
+    <ClCompile Include="..\elegance\memory\mempool.cpp">
+      <Filter>elegance\memory</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\common\tools.cpp">
-      <Filter>src\common</Filter>
+    <ClCompile Include="..\elegance\common\tools.cpp">
+      <Filter>elegance\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\memory\byte_array\queue_byte_array.cpp">
-      <Filter>src\memory\byte_array</Filter>
+    <ClCompile Include="..\elegance\memory\byte_array\queue_byte_array.cpp">
+      <Filter>elegance\memory\byte_array</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\memory\serialize\serialize_manager.cpp">
-      <Filter>src\memory\serialize</Filter>
+    <ClCompile Include="..\elegance\memory\serialize\serialize_manager.cpp">
+      <Filter>elegance\memory\serialize</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\memory\serialize\serialize_base.cpp">
-      <Filter>src\memory\serialize</Filter>
+    <ClCompile Include="..\elegance\memory\serialize\serialize_base.cpp">
+      <Filter>elegance\memory\serialize</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

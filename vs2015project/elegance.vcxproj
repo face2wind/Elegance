@@ -71,12 +71,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>../lib/win32</OutDir>
+    <OutDir>../lib/win32\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>../lib/win64</OutDir>
+    <OutDir>../lib/win64/</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -92,7 +92,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\elegance;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
@@ -109,7 +109,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\elegance;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
@@ -155,51 +155,51 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\common\debug_message.hpp" />
-    <ClInclude Include="..\src\common\random.hpp" />
-    <ClInclude Include="..\src\common\tools.hpp" />
-    <ClInclude Include="..\src\elegance.hpp" />
-    <ClInclude Include="..\src\memory\byte_array\byte_array.hpp" />
-    <ClInclude Include="..\src\memory\byte_array\queue_byte_array.hpp" />
-    <ClInclude Include="..\src\memory\flexible_buffer.hpp" />
-    <ClInclude Include="..\src\memory\mempool.hpp" />
-    <ClInclude Include="..\src\memory\serialize\serialize_base.hpp" />
-    <ClInclude Include="..\src\memory\serialize\serialize_manager.hpp" />
-    <ClInclude Include="..\src\network\network_manager.hpp" />
-    <ClInclude Include="..\src\network\network_packer\network_packer_fixhead.hpp" />
-    <ClInclude Include="..\src\network\network_packer_factory.hpp" />
-    <ClInclude Include="..\src\platform\common\system_info.hpp" />
-    <ClInclude Include="..\src\platform\common\timer.hpp" />
-    <ClInclude Include="..\src\platform\network\socket_accept.hpp" />
-    <ClInclude Include="..\src\platform\network\socket_connect.hpp" />
-    <ClInclude Include="..\src\platform\network\socket_def.hpp" />
-    <ClInclude Include="..\src\platform\platform_def.hpp" />
-    <ClInclude Include="..\src\platform\thread\mutex.hpp" />
-    <ClInclude Include="..\src\platform\thread\signal.hpp" />
-    <ClInclude Include="..\src\platform\thread\thread.hpp" />
-    <ClInclude Include="..\src\platform\thread\thread_pool.hpp" />
-    <ClInclude Include="..\src\rpc\rpc_manager.hpp" />
+    <ClInclude Include="..\elegance\common\debug_message.hpp" />
+    <ClInclude Include="..\elegance\common\random.hpp" />
+    <ClInclude Include="..\elegance\common\tools.hpp" />
+    <ClInclude Include="..\elegance\elegance.hpp" />
+    <ClInclude Include="..\elegance\memory\byte_array\byte_array.hpp" />
+    <ClInclude Include="..\elegance\memory\byte_array\queue_byte_array.hpp" />
+    <ClInclude Include="..\elegance\memory\flexible_buffer.hpp" />
+    <ClInclude Include="..\elegance\memory\mempool.hpp" />
+    <ClInclude Include="..\elegance\memory\serialize\serialize_base.hpp" />
+    <ClInclude Include="..\elegance\memory\serialize\serialize_manager.hpp" />
+    <ClInclude Include="..\elegance\network\network_manager.hpp" />
+    <ClInclude Include="..\elegance\network\network_packer\network_packer_fixhead.hpp" />
+    <ClInclude Include="..\elegance\network\network_packer_factory.hpp" />
+    <ClInclude Include="..\elegance\platform\common\system_info.hpp" />
+    <ClInclude Include="..\elegance\platform\common\timer.hpp" />
+    <ClInclude Include="..\elegance\platform\network\socket_accept.hpp" />
+    <ClInclude Include="..\elegance\platform\network\socket_connect.hpp" />
+    <ClInclude Include="..\elegance\platform\network\socket_def.hpp" />
+    <ClInclude Include="..\elegance\platform\platform_def.hpp" />
+    <ClInclude Include="..\elegance\platform\thread\mutex.hpp" />
+    <ClInclude Include="..\elegance\platform\thread\signal.hpp" />
+    <ClInclude Include="..\elegance\platform\thread\thread.hpp" />
+    <ClInclude Include="..\elegance\platform\thread\thread_pool.hpp" />
+    <ClInclude Include="..\elegance\rpc\rpc_manager.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\common\debug_message.cpp" />
-    <ClCompile Include="..\src\common\random.cpp" />
-    <ClCompile Include="..\src\common\tools.cpp" />
-    <ClCompile Include="..\src\memory\byte_array\queue_byte_array.cpp" />
-    <ClCompile Include="..\src\memory\mempool.cpp" />
-    <ClCompile Include="..\src\memory\serialize\serialize_base.cpp" />
-    <ClCompile Include="..\src\memory\serialize\serialize_manager.cpp" />
-    <ClCompile Include="..\src\network\network_manager.cpp" />
-    <ClCompile Include="..\src\network\network_packer\network_packer_fixhead.cpp" />
-    <ClCompile Include="..\src\network\network_packer_factory.cpp" />
-    <ClCompile Include="..\src\platform\common\system_info.cpp" />
-    <ClCompile Include="..\src\platform\common\timer.cpp" />
-    <ClCompile Include="..\src\platform\network\socket_accept.cpp" />
-    <ClCompile Include="..\src\platform\network\socket_connect.cpp" />
-    <ClCompile Include="..\src\platform\thread\mutex.cpp" />
-    <ClCompile Include="..\src\platform\thread\signal.cpp" />
-    <ClCompile Include="..\src\platform\thread\thread.cpp" />
-    <ClCompile Include="..\src\platform\thread\thread_pool.cpp" />
-    <ClCompile Include="..\src\rpc\rpc_manager.cpp" />
+    <ClCompile Include="..\elegance\common\debug_message.cpp" />
+    <ClCompile Include="..\elegance\common\random.cpp" />
+    <ClCompile Include="..\elegance\common\tools.cpp" />
+    <ClCompile Include="..\elegance\memory\byte_array\queue_byte_array.cpp" />
+    <ClCompile Include="..\elegance\memory\mempool.cpp" />
+    <ClCompile Include="..\elegance\memory\serialize\serialize_base.cpp" />
+    <ClCompile Include="..\elegance\memory\serialize\serialize_manager.cpp" />
+    <ClCompile Include="..\elegance\network\network_manager.cpp" />
+    <ClCompile Include="..\elegance\network\network_packer\network_packer_fixhead.cpp" />
+    <ClCompile Include="..\elegance\network\network_packer_factory.cpp" />
+    <ClCompile Include="..\elegance\platform\common\system_info.cpp" />
+    <ClCompile Include="..\elegance\platform\common\timer.cpp" />
+    <ClCompile Include="..\elegance\platform\network\socket_accept.cpp" />
+    <ClCompile Include="..\elegance\platform\network\socket_connect.cpp" />
+    <ClCompile Include="..\elegance\platform\thread\mutex.cpp" />
+    <ClCompile Include="..\elegance\platform\thread\signal.cpp" />
+    <ClCompile Include="..\elegance\platform\thread\thread.cpp" />
+    <ClCompile Include="..\elegance\platform\thread\thread_pool.cpp" />
+    <ClCompile Include="..\elegance\rpc\rpc_manager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
