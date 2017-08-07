@@ -1,9 +1,9 @@
 #include "network_manager.hpp"
 
-#include <platform/network/socket_accept.hpp>
-#include <platform/network/socket_connect.hpp>
+#include <elegance/platform/network/socket_accept.hpp>
+#include <elegance/platform/network/socket_connect.hpp>
 
-#include "common/debug_message.hpp"
+#include "elegance/common/debug_message.hpp"
 #include <sstream>
 
 namespace face2wind

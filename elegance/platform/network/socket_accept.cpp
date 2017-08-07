@@ -1,6 +1,6 @@
 #include "socket_def.hpp"
 #include "socket_accept.hpp"
-#include "common/debug_message.hpp"
+#include "elegance/common/debug_message.hpp"
 
 namespace face2wind {
 

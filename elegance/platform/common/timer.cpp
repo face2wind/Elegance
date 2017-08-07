@@ -1,5 +1,5 @@
-#include <platform/common/timer.hpp>
-#include <platform/platform_def.hpp>
+#include <elegance/platform/common/timer.hpp>
+#include <elegance/platform/platform_def.hpp>
 
 #ifdef __LINUX__
 #include <unistd.h>

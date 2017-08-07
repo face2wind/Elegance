@@ -1,5 +1,5 @@
 #include "socket_connect.hpp"
-#include "common/debug_message.hpp"
+#include "elegance/common/debug_message.hpp"
 
 namespace face2wind {
 

@@ -4,9 +4,9 @@
 #include <map>
 #include <stack>
 
-#include <platform/network/socket_def.hpp>
-#include <platform/thread/thread_pool.hpp>
-#include <network/network_packer_factory.hpp>
+#include <elegance/platform/network/socket_def.hpp>
+#include <elegance/platform/thread/thread_pool.hpp>
+#include <elegance/network/network_packer_factory.hpp>
 
 namespace face2wind
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <platform/platform_def.hpp>
+#include <elegance/platform/platform_def.hpp>
 
 #ifdef __LINUX__
 #include <sys/sysinfo.h>

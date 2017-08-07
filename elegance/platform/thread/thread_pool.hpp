@@ -2,9 +2,9 @@
 
 #include <set>
 #include <list>
-#include <platform/thread/thread.hpp>
-#include <platform/thread/mutex.hpp>
-#include <platform/thread/signal.hpp>
+#include <elegance/platform/thread/thread.hpp>
+#include <elegance/platform/thread/mutex.hpp>
+#include <elegance/platform/thread/signal.hpp>
 
 namespace face2wind {
 

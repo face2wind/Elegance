@@ -1,8 +1,8 @@
 #include <iostream>
 
-#include <common/debug_message.hpp>
-#include <platform/common/system_info.hpp>
-#include <platform/thread/thread_pool.hpp>
+#include <elegance/common/debug_message.hpp>
+#include <elegance/platform/common/system_info.hpp>
+#include <elegance/platform/thread/thread_pool.hpp>
 
 namespace face2wind {
   

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <platform/thread/mutex.hpp>
+#include <elegance/platform/thread/mutex.hpp>
 
 #include <map>
 #include <set>

@@ -1,4 +1,4 @@
-#include "common/debug_message.hpp"
+#include "elegance/common/debug_message.hpp"
 #include <iostream>
 
 namespace face2wind

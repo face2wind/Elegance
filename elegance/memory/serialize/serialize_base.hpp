@@ -1,6 +1,6 @@
 #pragma once
 
-#include <memory/byte_array/byte_array.hpp>
+#include <elegance/memory/byte_array/byte_array.hpp>
 #include <map>
 
 namespace face2wind {
