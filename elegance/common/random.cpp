@@ -1,4 +1,4 @@
-#include <common/random.hpp>
+#include <elegance/common/random.hpp>
 
 #include <time.h>
 #include <stdlib.h>
