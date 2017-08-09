@@ -1,14 +1,13 @@
 #ifndef __RPC_MANAGER_HPP__
 #define __RPC_MANAGER_HPP__
 
-#include <string>
 #include <map>
 #include <set>
 #include <stack>
 
-#include "platform/network/socket_def.hpp"
-#include "platform/thread/mutex.hpp"
-#include "network/network_manager.hpp"
+#include "elegance/platform/network/socket_def.hpp"
+#include "elegance/platform/thread/mutex.hpp"
+#include "elegance/network/network_manager.hpp"
 
 namespace face2wind
 {

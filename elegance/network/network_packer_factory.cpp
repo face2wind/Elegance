@@ -1,7 +1,7 @@
-#include <network/network_packer_factory.hpp>
-#include <network/network_manager.hpp>
+#include <elegance/network/network_packer_factory.hpp>
+#include <elegance/network/network_manager.hpp>
 
-#include <network/network_packer/network_packer_fixhead.hpp>
+#include <elegance/network/network_packer/network_packer_fixhead.hpp>
 
 namespace face2wind
 {
@@ -30,6 +30,8 @@ namespace face2wind
 		case NetworkPackerType::FIX_HEAD:
 			packer = new NetworkPackagerFixHead(mgr);
 			break;
+
+		default: break;
 		}
 
 		return packer;

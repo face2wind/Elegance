@@ -1,7 +1,7 @@
 #pragma once
 
-#include <network/network_packer_factory.hpp>
-#include <memory/flexible_buffer.hpp>
+#include <elegance/network/network_packer_factory.hpp>
+#include <elegance/memory/flexible_buffer.hpp>
 
 #include <map>
 

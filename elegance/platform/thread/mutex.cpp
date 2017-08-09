@@ -1,4 +1,4 @@
-#include <platform/thread/mutex.hpp>
+#include <elegance/platform/thread/mutex.hpp>
 
 namespace face2wind {
 

@@ -1,4 +1,4 @@
-#include <platform/thread/thread.hpp>
+#include <elegance/platform/thread/thread.hpp>
 
 namespace face2wind {
 

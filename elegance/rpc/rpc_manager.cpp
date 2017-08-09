@@ -1,9 +1,8 @@
 #include "rpc_manager.hpp"
-#include "network/network_manager.hpp"
-#include "common/debug_message.hpp"
+#include "elegance/network/network_manager.hpp"
+#include "elegance/common/debug_message.hpp"
 #include <sstream>
 #include <limits.h>
-#include <cstring>
 
 namespace face2wind
 {

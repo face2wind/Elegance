@@ -1,8 +1,7 @@
-#include <platform/thread/signal.hpp>
+#include <elegance/platform/thread/signal.hpp>
 
 #include <iostream>
 #include <signal.h>
-#include <cstring>
 
 namespace face2wind {
   

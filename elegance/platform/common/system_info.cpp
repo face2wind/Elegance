@@ -1,4 +1,4 @@
-#include <platform/common/system_info.hpp>
+#include <elegance/platform/common/system_info.hpp>
 
 namespace face2wind {
 
