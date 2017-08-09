@@ -103,10 +103,10 @@ void NetworkManager::Disconnect(NetworkID net_id)
   auto endpoint_it = net_id_to_endpoint_map_.find(net_id);
   if (endpoint_it == net_id_to_endpoint_map_.end())
   {
-    net_id_endpoint_lock_.Lock();
+    net_id_endpoint_lock_.Unlock();
     return;
   }
-  net_id_endpoint_lock_.Lock();
+  net_id_endpoint_lock_.Unlock();
   
   fDebugWithHead(DebugMessageType::BASE_NETWORK) << "NetworkManager::Disconnect net_id = " << net_id << fDebugEndl;
 
