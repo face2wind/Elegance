@@ -1,5 +1,6 @@
 #include <elegance/platform/thread/signal.hpp>
 
+#include <cstring>
 #include <iostream>
 #include <signal.h>
 

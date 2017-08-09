@@ -2,6 +2,8 @@
 #include "elegance/memory/byte_array/queue_byte_array.hpp"
 #include "elegance/network/network_manager.hpp"
 
+#include <cstring>
+
 namespace face2wind {
 
 void SerializeNetworkManager::SendSerialize(NetworkID net_id, const SerializeBase &data)
