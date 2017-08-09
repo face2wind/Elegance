@@ -1,7 +1,7 @@
 #pragma once
 
-#include "network/network_manager.hpp"
 #include "serialize_base.hpp"
+#include "elegance/network/network_manager.hpp"
 
 namespace face2wind {
 

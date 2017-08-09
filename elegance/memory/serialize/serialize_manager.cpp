@@ -1,6 +1,6 @@
 #include "serialize_manager.hpp"
-#include "memory/byte_array/queue_byte_array.hpp"
-#include <cstring>
+#include "elegance/memory/byte_array/queue_byte_array.hpp"
+#include "elegance/network/network_manager.hpp"
 
 namespace face2wind {
 
