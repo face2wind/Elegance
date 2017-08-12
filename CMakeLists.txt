@@ -15,8 +15,8 @@ ADD_LIBRARY(Elegance_static STATIC ${SOURCE_FILES})
 SET_TARGET_PROPERTIES(Elegance_share PROPERTIES OUTPUT_NAME "Elegance" VERSION 1.2 SOVERSION 1)
 SET_TARGET_PROPERTIES(Elegance_static PROPERTIES OUTPUT_NAME "Elegance" VERSION 1.2 SOVERSION 1)
 
-set_target_properties(Elegance_share PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/../lib/linux/)
-set_target_properties(Elegance_static PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/../lib/linux/)
+set_target_properties(Elegance_share PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/../lib/linux64/)
+set_target_properties(Elegance_static PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/../lib/linux64/)
 
 install(TARGETS Elegance_share Elegance_static
   RUNTIME DESTINATION bin

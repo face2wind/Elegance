@@ -57,10 +57,13 @@ cp ${tools_path}/../lib . -R
 # copy src and vs project files
 cp ${tools_path}/project_creator/src . -R
 cp ${tools_path}/project_creator/VS2015_project . -R
+cp ${tools_path}/project_creator/CMakeLists.txt .
+
+
+sed -e "s/EleganceHelloworld/${project_name}/g" -i VS2015_project/EleganceHelloworld*
+sed -e "s/EleganceHelloworld/${project_name}/g" -i CMakeLists.txt
 
 cd VS2015_project/
-
-sed -e "s/EleganceHelloworld/${project_name}/g" -i EleganceHelloworld*
 mv EleganceHelloworld.sln ${project_name}.sln
 mv EleganceHelloworld.vcxproj ${project_name}.vcxproj
 mv EleganceHelloworld.vcxproj.filters ${project_name}.vcxproj.filters
