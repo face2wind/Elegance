@@ -27,8 +27,8 @@ fi
 
 if [ -d ${project_path}/${project_name} ] ; then
     echo "${project_path}/${project_name} Aleady exist, Please choose other name"
-    rm -rf ${project_path}/${project_name}
-    #exit
+    #rm -rf ${project_path}/${project_name}
+    exit
 fi
 
 
