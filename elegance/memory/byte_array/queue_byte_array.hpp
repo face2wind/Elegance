@@ -52,8 +52,8 @@ class QueueByteArray : public ByteArray
   void WriteString(const std::string &value);
   void WriteObject(const void *obj, int bytesLen);
 
-  QueueByteArray &operator+(QueueByteArray other);
-  QueueByteArray &operator=(QueueByteArray other);
+  QueueByteArray &operator+(QueueByteArray &other);
+  QueueByteArray &operator=(QueueByteArray &other);
 
   void ReadFromByteArray(ByteArray *other,int bytesLen = 0);
   void ShowAllBytes();

@@ -15,6 +15,7 @@ enum class DebugMessageType
   THREAD,
   BASE_NETWORK,
   REMOTE_PROCEDURE_CALL,
+  BYTE_ARRAY,
 
   TYPE_COUNT
 };

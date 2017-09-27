@@ -111,6 +111,9 @@
     <ClInclude Include="..\elegance\memory\serialize\serialize_manager.hpp">
       <Filter>elegance\memory\serialize</Filter>
     </ClInclude>
+    <ClInclude Include="..\elegance\memory\byte_array\static_byte_array.hpp">
+      <Filter>elegance\memory\byte_array</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\elegance\platform\thread\mutex.cpp">
@@ -169,6 +172,9 @@
     </ClCompile>
     <ClCompile Include="..\elegance\memory\serialize\serialize_base.cpp">
       <Filter>elegance\memory\serialize</Filter>
+    </ClCompile>
+    <ClCompile Include="..\elegance\memory\byte_array\static_byte_array.cpp">
+      <Filter>elegance\memory\byte_array</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

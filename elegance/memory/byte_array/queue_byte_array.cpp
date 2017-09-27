@@ -268,14 +268,17 @@ void QueueByteArray::WriteObject(const void *obj, int bytesLen)
   }
 }
 
-QueueByteArray &QueueByteArray::operator+(QueueByteArray other)
+QueueByteArray &QueueByteArray::operator+(QueueByteArray &other)
 {
   ReadFromByteArray(&other,other.BytesAvailable());
   return *this;
 }
 
-QueueByteArray &QueueByteArray::operator=(QueueByteArray other)
+QueueByteArray &QueueByteArray::operator=(QueueByteArray &other)
 {
+  if (this == &other)
+    return *this;
+
   Clear();
   ReadFromByteArray(&other,other.BytesAvailable());
   return *this;

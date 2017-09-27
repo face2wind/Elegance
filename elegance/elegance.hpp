@@ -20,6 +20,7 @@
 #include <elegance/memory/mempool.hpp>
 #include <elegance/memory/byte_array/byte_array.hpp>
 #include <elegance/memory/byte_array/queue_byte_array.hpp>
+#include <elegance/memory/byte_array/static_byte_array.hpp>
 #include <elegance/memory/serialize/serialize_manager.hpp>
 
 #include <elegance/common/random.hpp>

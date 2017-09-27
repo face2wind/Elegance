@@ -161,6 +161,7 @@
     <ClInclude Include="..\elegance\elegance.hpp" />
     <ClInclude Include="..\elegance\memory\byte_array\byte_array.hpp" />
     <ClInclude Include="..\elegance\memory\byte_array\queue_byte_array.hpp" />
+    <ClInclude Include="..\elegance\memory\byte_array\static_byte_array.hpp" />
     <ClInclude Include="..\elegance\memory\flexible_buffer.hpp" />
     <ClInclude Include="..\elegance\memory\mempool.hpp" />
     <ClInclude Include="..\elegance\memory\serialize\serialize_base.hpp" />
@@ -185,6 +186,7 @@
     <ClCompile Include="..\elegance\common\random.cpp" />
     <ClCompile Include="..\elegance\common\tools.cpp" />
     <ClCompile Include="..\elegance\memory\byte_array\queue_byte_array.cpp" />
+    <ClCompile Include="..\elegance\memory\byte_array\static_byte_array.cpp" />
     <ClCompile Include="..\elegance\memory\mempool.cpp" />
     <ClCompile Include="..\elegance\memory\serialize\serialize_base.cpp" />
     <ClCompile Include="..\elegance\memory\serialize\serialize_manager.cpp" />
