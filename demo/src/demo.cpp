@@ -2,11 +2,11 @@
 
 int main(int argc, char*argv[])
 {
-	int ret = 0;
+  int ret = 0;
 	
-	//ret = TestByteArray();
-	//ret = TestNetwork();
-	ret = TestSerilaizeNetwork();
+  //ret = TestByteArray();
+  //ret = TestNetwork();
+  ret = TestSerilaizeNetwork();
 
-	return 0;
+  return ret;
 }

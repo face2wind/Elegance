@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include <cstring>
 #include "elegance/common/debug_message.hpp"
 #include "static_byte_array.hpp"
 
