@@ -7,6 +7,8 @@
 #include <elegance/platform/network/socket_def.hpp>
 #include <elegance/platform/thread/thread_pool.hpp>
 #include <elegance/network/network_packer_factory.hpp>
+#include <queue>
+#include "elegance/memory/mempool.hpp"
 
 namespace face2wind
 {
@@ -50,6 +52,29 @@ class NetworkManagerConnectTask : public IThreadTask
   virtual void Run();
 };
 
+struct NetworkHandleTask
+{
+	enum class TaskType
+	{
+		ON_CONNECT = 0,
+		ON_CONNECT_FAIL,
+		ON_LISTEN_FAIL,
+		ON_ACCEPT,
+		ON_DISCONNECT,
+		ON_RECV,
+	};
+
+	NetworkHandleTask() : task_type(), net_id(0), remote_ip(""), remote_port(0), local_port(0), length(0) {}
+
+	TaskType task_type;
+	NetworkID net_id;
+	IPAddr remote_ip;
+	Port remote_port;
+	Port local_port;
+	char data[MAX_SOCKET_MSG_BUFF_LENGTH];
+	int length;
+};
+
 class NetworkManager : public ISocketHandler
 {
  public:
@@ -71,7 +96,11 @@ class NetworkManager : public ISocketHandler
   void Send(NetworkID net_id, const char *data, int length);
   void Disconnect(NetworkID net_id);
 
+  void SetSingleThreadHandleMode(bool open) { single_thread_handle_mode_ = open; }
+  void HandleNetTask();
+
   void WaitAllThread();
+  void SyncRunning(); // 同步运行，此函数会阻塞进程，进入死循环。当调用此函数，自动切换到单线程处理模式（保证所有对INetworkHandler的回调都在同一线程里）
   
  protected:
   Thread * GetFreeThread();
@@ -112,6 +141,11 @@ class NetworkManager : public ISocketHandler
 
   INetworkPackager *packager_;
   NetworkPackerType packer_type_;
+
+  bool single_thread_handle_mode_; // 单线程处理回调模式
+  Mutex handle_task_mutex_;
+  std::queue<NetworkHandleTask*> handle_task_queue_; // 单线程任务队列
+  MemoryPool network_task_memory_pool_;
 };
 
 

@@ -3,7 +3,6 @@
 #include <elegance/platform/thread/mutex.hpp>
 
 #include <map>
-#include <set>
 #include <stack>
 #include <vector>
 
@@ -58,9 +57,10 @@ class MemoryPoolManager
   bool Free(void *memory);
 
  private:
-  Mutex operate_lock_;
+  Mutex memory_to_size_map_lock_;
   std::map<void*, int> memory_to_size_map_;
 
+  Mutex memory_size_to_pool_map_lock_;
   std::map<int, MemoryPool*> memory_size_to_pool_map_;
 };
 

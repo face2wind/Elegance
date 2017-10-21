@@ -1,0 +1,47 @@
+<xml>
+  <protocol name='CSCheckServiceInfo'>
+    <attr name='service_type' type='int16'/>
+  </protocol>
+
+  <protocol name='SCCheckServiceInfoAck'>
+    <attr name='service_type' type='int16'/>
+    <attr name='ip_addr' type='string'/>
+    <attr name='port' type='uint16'/>
+  </protocol>
+
+  <protocol name='CSGORequestCommandList'>
+    <attr name='project_list_type' type='int8'/>
+  </protocol>
+
+  <protocol name='SCGOCommandProjectItem'>
+    <attr name='project_type' type='int8'/>
+    <attr name='project_name' type='string'/>
+  </protocol>
+
+  <protocol name='SCGOCommandOperateItem'>
+    <attr name='operate_type' type='int8'/>
+    <attr name='operate_name' type='string'/>
+    <attr name='operate_describe' type='string'/>
+  </protocol>
+  
+  <protocol name='SCGORequestCommandListACK'>
+    <attr name='project_list' type='array' subtype='SCGOCommandProjectItem'/>
+    <attr name='operate_list' type='array' subtype='SCGOCommandOperateItem'/>
+  </protocol>
+
+  <protocol name='CSGORequestCommand'>
+    <attr name='project_type' type='int8'/>
+    <attr name='operate_type' type='int8'/>
+  </protocol>
+
+  <protocol name='SCGORequestCommandAck'>
+    <attr name='project_type' type='int8'/>
+    <attr name='operate_type' type='int8'/>
+    <attr name='operate_result' type='int8'/>
+  </protocol>
+
+  <protocol name='SCGOCommandOutput'>
+    <attr name='output_str_list' type='array' subtype='string'/>
+  </protocol>
+  
+</xml>

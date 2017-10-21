@@ -81,7 +81,6 @@ namespace face2wind
 			return "";
 
 		unsigned short str_len = this->ReadUint16();
-		has_read_length_ += STRING_LENGTH_BYTE_SIZE;
 		valid_buffer_len_ -= STRING_LENGTH_BYTE_SIZE;
 
 		static char read_str[MAX_MSG_LENGTH + 1] = {0};
@@ -180,7 +179,6 @@ namespace face2wind
 		}
 
 		this->WriteUint16(str_len); // –¥»Î≥§∂»
-		has_write_length_ += STRING_LENGTH_BYTE_SIZE;
 
 		char *v_p_str = buffer_cache_ + has_write_length_;
 		memcpy(v_p_str, str.c_str(), str_len);

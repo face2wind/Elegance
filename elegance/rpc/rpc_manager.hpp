@@ -15,7 +15,6 @@ namespace face2wind
 static const int RPC_SESSION_NETWORK_MESSAGE_MAX_LEN = 10240;
 const static int RPC_MAX_KEY_STRING_LENGTH = 99;
 
-class Network;
 class RPCSession;
 class RPCManager;
 

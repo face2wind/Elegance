@@ -57,6 +57,8 @@ void *MemoryPoolManager::Alloc(int size)
 
   int align = sizeof(long);
   int fix_size = size + align - size % align;
+
+  memory_size_to_pool_map_lock_.Lock();
   auto pool_it = memory_size_to_pool_map_.find(fix_size);
   if (pool_it == memory_size_to_pool_map_.end())
   {
@@ -68,22 +70,31 @@ void *MemoryPoolManager::Alloc(int size)
   {
     mem = pool_it->second->Alloc();
   }
+  memory_size_to_pool_map_lock_.Unlock();
 
   if (nullptr != mem)
-    memory_to_size_map_[mem] = fix_size;
+  {
+	  memory_to_size_map_lock_.Lock();
+	  memory_to_size_map_[mem] = fix_size;
+	  memory_to_size_map_lock_.Unlock();
+  }
   
   return mem;
 }
 
 bool MemoryPoolManager::Free(void *memory)
 {
+  memory_to_size_map_lock_.Lock();
   auto size_it = memory_to_size_map_.find(memory);
   if (size_it == memory_to_size_map_.end())
     return false;
+  memory_to_size_map_lock_.Unlock();
 
+  memory_size_to_pool_map_lock_.Lock();
   auto pool_it = memory_size_to_pool_map_.find(size_it->second);
   if (pool_it == memory_size_to_pool_map_.end())
     return false;
+  memory_size_to_pool_map_lock_.Unlock();
 
   //memory_to_size_map_.erase(size_it); no need erase, it's always valid
   

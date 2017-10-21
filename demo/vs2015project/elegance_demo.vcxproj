@@ -125,10 +125,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\demo.cpp" />
+    <ClCompile Include="..\src\serialize_demo\test_serialize.cpp" />
     <ClCompile Include="..\src\test_bytearray.cpp" />
+    <ClCompile Include="..\src\test_network.cpp" />
+    <ClCompile Include="..\src\test_serialize_network.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\demo.hpp" />
+    <ClInclude Include="..\src\serialize_demo\test_serialize.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

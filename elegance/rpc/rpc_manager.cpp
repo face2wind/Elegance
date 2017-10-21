@@ -1,5 +1,4 @@
 #include "rpc_manager.hpp"
-#include "elegance/network/network_manager.hpp"
 #include "elegance/common/debug_message.hpp"
 
 #include <limits.h>

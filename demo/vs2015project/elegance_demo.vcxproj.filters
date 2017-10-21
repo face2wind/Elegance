@@ -4,6 +4,9 @@
     <Filter Include="src">
       <UniqueIdentifier>{fab88e6f-c057-47eb-a5c2-e33555315637}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\serialize_demo">
+      <UniqueIdentifier>{21e45c04-9e36-4a39-b28b-0dac411e56b1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\demo.cpp">
@@ -12,10 +15,22 @@
     <ClCompile Include="..\src\test_bytearray.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\test_network.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\test_serialize_network.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\serialize_demo\test_serialize.cpp">
+      <Filter>src\serialize_demo</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\demo.hpp">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\serialize_demo\test_serialize.hpp">
+      <Filter>src\serialize_demo</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

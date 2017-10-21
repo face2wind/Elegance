@@ -5,11 +5,12 @@
 
 #include "elegance/common/debug_message.hpp"
 #include <sstream>
+#include "elegance/platform/common/timer.hpp"
 
 namespace face2wind
 {
 
-NetworkManager::NetworkManager() : max_net_id_(0), packager_(nullptr), packer_type_(NetworkPackerType::BEGIN)
+NetworkManager::NetworkManager() : max_net_id_(0), packager_(nullptr), packer_type_(NetworkPackerType::BEGIN), single_thread_handle_mode_(false), network_task_memory_pool_(sizeof(NetworkHandleTask))
 {
   packager_ = NetworkPackerFactory::CreatePacker(packer_type_, this);
 }
@@ -119,6 +120,55 @@ void NetworkManager::Disconnect(NetworkID net_id)
     connect_it->second->Disconnect();
 }
 
+void NetworkManager::HandleNetTask()
+{
+	handle_task_mutex_.Lock();
+	if (handle_task_queue_.empty())
+	{
+		handle_task_mutex_.Unlock();
+		return;
+	}
+
+	NetworkHandleTask *task = handle_task_queue_.front();
+	handle_task_queue_.pop();
+	handle_task_mutex_.Unlock();
+
+	switch (task->task_type)
+	{
+	case NetworkHandleTask::TaskType::ON_CONNECT:
+		for (auto handler : handler_list_)
+			handler->OnConnect(task->remote_ip, task->remote_port, task->local_port, true, task->net_id);
+		break;
+
+	case NetworkHandleTask::TaskType::ON_CONNECT_FAIL:
+		for (auto handler : handler_list_)
+			handler->OnConnect(task->remote_ip, task->remote_port, task->local_port, false, 0);
+		break;
+
+	case NetworkHandleTask::TaskType::ON_LISTEN_FAIL:
+		for (auto handler : handler_list_)
+			handler->OnListenFail(task->local_port);
+		break;
+
+	case NetworkHandleTask::TaskType::ON_RECV:
+		for (auto handler : handler_list_)
+			handler->OnRecv(task->net_id, task->data, task->length);
+		break;
+
+	case NetworkHandleTask::TaskType::ON_ACCEPT:
+		for (auto handler : handler_list_)
+			handler->OnAccept(task->remote_ip, task->remote_port, task->local_port, task->net_id);
+		break;
+
+	case NetworkHandleTask::TaskType::ON_DISCONNECT:
+		for (auto handler : handler_list_)
+			handler->OnDisconnect(task->net_id);
+		break;
+	}
+
+	network_task_memory_pool_.Free(task);
+}
+
 void NetworkManager::WaitAllThread()
 {
   for (Thread *thread : thread_set_)
@@ -130,6 +180,16 @@ void NetworkManager::WaitAllThread()
     }
   }
   thread_set_.clear();
+}
+
+void NetworkManager::SyncRunning()
+{
+	this->SetSingleThreadHandleMode(true);
+
+	while (true)
+	{
+		this->HandleNetTask();
+	}
 }
 
 Thread * NetworkManager::GetFreeThread()
@@ -182,8 +242,25 @@ void NetworkManager::ListenThread(Port port)
 
   if (!listen_result)
   {
-    for (auto handler : handler_list_)
-      handler->OnListenFail(port);
+	  if (single_thread_handle_mode_)
+	  {
+		  NetworkHandleTask *task = (NetworkHandleTask *)network_task_memory_pool_.Alloc();
+		  if (nullptr != task)
+		  {
+			  new (task)NetworkHandleTask();
+			  task->task_type = NetworkHandleTask::TaskType::ON_LISTEN_FAIL;
+			  task->local_port = port;
+
+			  handle_task_mutex_.Lock();
+			  handle_task_queue_.push(task);
+			  handle_task_mutex_.Unlock();
+		  }
+	  }
+	  else
+	  {
+		  for (auto handler : handler_list_)
+			  handler->OnListenFail(port);
+	  }
   }
 
   accept_list_mutex_.Lock();
@@ -208,8 +285,27 @@ void NetworkManager::ConnectThread(IPAddr ip, Port port)
 
   if (!connect_result)
   {
-    for (auto handler : handler_list_)
-      handler->OnConnect(ip, port, connect->GetLocalPort(), false, 0);
+	if (single_thread_handle_mode_)
+	{
+		NetworkHandleTask *task = (NetworkHandleTask *)network_task_memory_pool_.Alloc();
+		if (nullptr != task)
+		{
+			new (task)NetworkHandleTask();
+			task->task_type = NetworkHandleTask::TaskType::ON_CONNECT_FAIL;
+			task->remote_ip = ip;
+			task->remote_port = port;
+			task->local_port = connect->GetLocalPort();
+
+			handle_task_mutex_.Lock();
+			handle_task_queue_.push(task);
+			handle_task_mutex_.Unlock();
+		}
+	}
+	else
+	{
+		for (auto handler : handler_list_)
+			handler->OnConnect(ip, port, connect->GetLocalPort(), false, 0);
+	}
   }
 
   connect_list_mutex_.Lock();
@@ -241,8 +337,28 @@ void NetworkManager::OnAccept(IPAddr remote_ip, Port remote_port, Port local_por
 
   fDebugWithHead(DebugMessageType::BASE_NETWORK) << "NetworkManager::OnAccept remote = " << remote_ip << ":" << remote_port << ", local_port = " << local_port << ", net_id = "<< net_id << fDebugEndl;
 
-  for (auto handler : handler_list_)
-    handler->OnAccept(remote_ip, remote_port, local_port, net_id);
+  if (single_thread_handle_mode_)
+  {
+	  NetworkHandleTask *task = (NetworkHandleTask *)network_task_memory_pool_.Alloc();
+	  if (nullptr != task)
+	  {
+		  new (task)NetworkHandleTask();
+		  task->task_type = NetworkHandleTask::TaskType::ON_ACCEPT;
+		  task->net_id = net_id;
+		  task->remote_ip = remote_ip;
+		  task->remote_port = remote_port;
+		  task->local_port = local_port;
+
+		  handle_task_mutex_.Lock();
+		  handle_task_queue_.push(task);
+		  handle_task_mutex_.Unlock();
+	  }
+  }
+  else
+  {
+	  for (auto handler : handler_list_)
+		  handler->OnAccept(remote_ip, remote_port, local_port, net_id);
+  }
 }
 
 void NetworkManager::OnConnect(IPAddr remote_ip, Port remote_port, Port local_port)
@@ -268,8 +384,28 @@ void NetworkManager::OnConnect(IPAddr remote_ip, Port remote_port, Port local_po
 
   fDebugWithHead(DebugMessageType::BASE_NETWORK) << "NetworkManager::OnConnect remote = " << remote_ip << ":" << remote_port << ", local_port = " << local_port << ", net_id = " << net_id << fDebugEndl;
 
-  for (auto handler : handler_list_)
-    handler->OnConnect(remote_ip, remote_port, local_port, true, net_id);
+  if (single_thread_handle_mode_)
+  {
+	  NetworkHandleTask *task = (NetworkHandleTask *)network_task_memory_pool_.Alloc();
+	  if (nullptr != task)
+	  {
+		  new (task)NetworkHandleTask();
+		  task->task_type = NetworkHandleTask::TaskType::ON_CONNECT;
+		  task->remote_ip = remote_ip;
+		  task->remote_port = remote_port;
+		  task->local_port = local_port;
+		  task->net_id = net_id;
+
+		  handle_task_mutex_.Lock();
+		  handle_task_queue_.push(task);
+		  handle_task_mutex_.Unlock();
+	  }
+  }
+  else
+  {
+	  for (auto handler : handler_list_)
+		  handler->OnConnect(remote_ip, remote_port, local_port, true, net_id);
+  }
 }
 
 void NetworkManager::OnRecv(IPAddr ip, Port port, Port local_port, char *data, int length)
@@ -320,9 +456,26 @@ void NetworkManager::OnDisconnect(IPAddr ip, Port port, Port local_port)
   }
 
   fDebugWithHead(DebugMessageType::BASE_NETWORK) << "NetworkManager::OnDisconnect net_id = " << net_id << fDebugEndl;
+  if (single_thread_handle_mode_)
+  {
+	  NetworkHandleTask *task = (NetworkHandleTask *)network_task_memory_pool_.Alloc();
+	  if (nullptr != task)
+	  {
+		  new (task)NetworkHandleTask();
+		  task->task_type = NetworkHandleTask::TaskType::ON_DISCONNECT;
+		  task->net_id = net_id;
+		  task->local_port = local_port;
 
-  for (auto handler : handler_list_)
-    handler->OnDisconnect(net_id);
+		  handle_task_mutex_.Lock();
+		  handle_task_queue_.push(task);
+		  handle_task_mutex_.Unlock();
+	  }
+  }
+  else
+  {
+	  for (auto handler : handler_list_)
+		  handler->OnDisconnect(net_id);
+  }
 
   free_net_id_list_.push(net_id);
 }
@@ -355,8 +508,27 @@ void NetworkManager::OnRecvPackage(NetworkID net_id, char *data, int length)
 
   fDebugWithHead(DebugMessageType::BASE_NETWORK) << "NetworkManager::OnRecvPackage net_id = " << net_id << ", data length = " << length << fDebugEndl;
 
-  for (auto handler : handler_list_)
-    handler->OnRecv(net_id, data, length);
+  if (single_thread_handle_mode_)
+  {
+	  NetworkHandleTask *task = (NetworkHandleTask *)network_task_memory_pool_.Alloc();
+	  if (nullptr != task)
+	  {
+		  new (task)NetworkHandleTask();
+		  task->task_type = NetworkHandleTask::TaskType::ON_RECV;
+		  task->net_id = net_id;
+		  memcpy(task->data, data, length);
+		  task->length = length;
+
+		  handle_task_mutex_.Lock();
+		  handle_task_queue_.push(task);
+		  handle_task_mutex_.Unlock();
+	  }
+  }
+  else
+  {
+	  for (auto handler : handler_list_)
+		  handler->OnRecv(net_id, data, length);
+  }
 }
 
 
