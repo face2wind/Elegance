@@ -50,6 +50,8 @@ class MemoryPool
 class MemoryPoolManager
 {
  public:
+	 static MemoryPoolManager & GetInstance();
+
   MemoryPoolManager();
   ~MemoryPoolManager();
   

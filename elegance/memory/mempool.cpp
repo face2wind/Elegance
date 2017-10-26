@@ -39,6 +39,12 @@ bool MemoryPool::Free(void *memory)
   return true;
 }
 
+MemoryPoolManager & MemoryPoolManager::GetInstance()
+{
+	static MemoryPoolManager instance;
+	return instance;
+}
+
 MemoryPoolManager::MemoryPoolManager()
 {
 
